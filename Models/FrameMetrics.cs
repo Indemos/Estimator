@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ScoreSpace
+namespace ExScore.ModelSpace
 {
   /// <summary>
   /// Single time frame data

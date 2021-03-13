@@ -1,9 +1,10 @@
+using ExScore.ModelSpace;
 using MathNet.Numerics.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
   /// Reward to risk ratio for a selected period

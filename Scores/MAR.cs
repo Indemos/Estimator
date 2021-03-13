@@ -1,8 +1,9 @@
+using ExScore.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
   /// MAR ratio

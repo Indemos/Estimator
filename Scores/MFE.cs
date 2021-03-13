@@ -1,13 +1,14 @@
+using ExScore.ModelSpace;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
-  /// Maximum adverse excursion
-  /// Maximum unrealized loss
+  /// Maximum favorable excursion
+  /// Maximum unrealized profit
   /// </summary>
-  public class MAE
+  public class MFE
   {
     /// <summary>
     /// Input values
@@ -25,7 +26,7 @@ namespace ScoreSpace
         return 0.0;
       }
 
-      return Values.Average(o => o.Value - o.Min);
+      return Values.Average(o => o.Max - o.Value);
     }
   }
 }

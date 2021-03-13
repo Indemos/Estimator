@@ -1,18 +1,19 @@
+using ExScore.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
-  /// AHPR or average holding period returns
-  /// I = Balance before deal
-  /// O = Balance after deal
+  /// GHPR or geometric holding period returns
+  /// I = Initial balance
+  /// O = Final balance
   /// HPR = Holding period returns for one deal = O / I
   /// N = Number of deals 
-  /// AHPR = (HPR[0] + HPR[1] + ... + HPR[N]) / N
+  /// GHPR = (HPR[0] + HPR[1] + ... + HPR[N]) ^ (1 / N)
   /// </summary>
-  public class AHPR
+  public class GHPR
   {
     /// <summary>
     /// Input values
@@ -25,10 +26,12 @@ namespace ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var sum = 0.0;
+      var sum = 1.0;
       var count = Values.Count();
+      var input = Values.FirstOrDefault();
+      var output = Values.LastOrDefault();
 
-      if (count == 0)
+      if (count == 0 || input == null || output == null || input.Value == 0)
       {
         return 0.0;
       }
@@ -38,10 +41,10 @@ namespace ScoreSpace
         var currentValue = Values.ElementAtOrDefault(i)?.Value ?? 0.0;
         var previousValue = Values.ElementAtOrDefault(i - 1)?.Value ?? 0.0;
 
-        sum += currentValue / previousValue;
+        sum *= currentValue / previousValue;
       }
 
-      return sum / count;
+      return Math.Pow(sum, 1.0 / count);
     }
   }
 }

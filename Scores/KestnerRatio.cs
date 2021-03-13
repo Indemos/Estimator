@@ -1,9 +1,10 @@
+using ExScore.ModelSpace;
 using MathNet.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
   /// Kestner ratio or K-Ratio

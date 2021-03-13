@@ -1,8 +1,8 @@
+using ExScore.ModelSpace;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 
-namespace ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
   /// Edge ratio or E-Ratio
