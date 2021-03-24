@@ -14,7 +14,9 @@
     <RepositoryUrl>https://github.com/Indemos/ExScore</RepositoryUrl>
     <PackageTags>finance options trading forex stock-market stocks futures statistics metrics performance</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.0-RC</Version>
+    <Version>1.0.1-RC</Version>
+    <AssemblyVersion>1.0.1.0</AssemblyVersion>
+    <FileVersion>1.0.1.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
