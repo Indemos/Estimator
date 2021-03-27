@@ -7,7 +7,7 @@ using System.Linq;
 namespace ExScore.ScoreSpace
 {
   /// <summary>
-  /// Reward to risk ratio for a selected period
+  /// Reward to risk ratio for a selected period measuring downside
   /// Ra = Asset returns
   /// Rb = Risk-free returns
   /// IR = Interest rate

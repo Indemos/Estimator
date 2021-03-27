@@ -24,10 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Packages\ExCore\Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="Screens\ScoreAtom.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>

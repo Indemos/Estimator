@@ -6,8 +6,7 @@ using System.Linq;
 namespace ExScore.ScoreSpace
 {
   /// <summary>
-  /// Maximum favorable excursion
-  /// Maximum unrealized profit
+  /// ROC or rate of change
   /// </summary>
   public class Change
   {
