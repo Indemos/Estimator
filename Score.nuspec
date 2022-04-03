@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>ExScore</id>
+    <version>1.0.6-prerelease</version>
+    <title>ExScore</title>
+    <authors>artemiusgreat</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <!-- <icon>icon.png</icon> -->
+    <projectUrl>https://github.com/Indemos/Statistics</projectUrl>
+    <description>Statistics and performance metrics in trading, CAGR, Sharpe, MAE, MFE, and others.</description>
+    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <copyright>http://indemos.com</copyright>
+    <tags>finance trading metrics forex performance-metrics stock-market stocks futures strategies backtestingsw</tags>
+  </metadata>
+</package>
