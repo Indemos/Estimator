@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30626.31
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32210.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Score", "Score.csproj", "{969C0C51-09D9-403D-B4A4-C51429FB4AD7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExScore", "ExScore.csproj", "{969C0C51-09D9-403D-B4A4-C51429FB4AD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
