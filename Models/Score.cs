@@ -1,9 +1,9 @@
-using Score.ScoreSpace;
+using ExScore.ScoreSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Score.ModelSpace
+namespace ExScore.ModelSpace
 {
   /// <summary>
   /// Generic position model

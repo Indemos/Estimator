@@ -1,10 +1,10 @@
-using Score.ModelSpace;
+using ExScore.ModelSpace;
 using MathNet.Numerics.Financial;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Score.ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
   /// Reward to risk ratio for a selected period measuring downside

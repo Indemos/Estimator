@@ -1,9 +1,9 @@
-using Score.ModelSpace;
+using ExScore.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Score.ScoreSpace
+namespace ExScore.ScoreSpace
 {
   /// <summary>
   /// LR Correlation
