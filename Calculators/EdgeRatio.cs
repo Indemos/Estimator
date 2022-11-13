@@ -1,8 +1,8 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// Edge ratio or E-Ratio
@@ -15,7 +15,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -23,20 +23,27 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var sum = Values.Sum(o =>
+      var count = Items.Count;
+
+      if (count < 2)
+      {
+        return 0;
+      }
+
+      var sum = Items.Sum(o =>
       {
         var maxGain = o.Max - o.Value;
         var maxLoss = o.Value - o.Min;
 
         if (maxLoss == 0)
         {
-          return 0.0;
+          return 0;
         }
 
         return maxGain / maxLoss;
       });
 
-      return sum / Values.Count();
+      return sum / count;
     }
   }
 }

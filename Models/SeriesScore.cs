@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ModelSpace
+namespace Stats.ModelSpace
 {
   /// <summary>
   /// Single series data
@@ -32,12 +32,12 @@ namespace ExScore.ModelSpace
   /// <summary>
   /// Statistics grouped by series
   /// </summary>
-  public class SeriesMetrics
+  public class SeriesScore
   {
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Values { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -54,26 +54,22 @@ namespace ExScore.ModelSpace
       {
         var current = Values.ElementAtOrDefault(i);
         var previous = Values.ElementAtOrDefault(i - 1);
+        var direction = 0;
+        var change = current.Value - previous.Value;
+        var gain = Math.Abs(Math.Max(change, 0.0));
+        var loss = Math.Abs(Math.Min(change, 0.0));
 
-        if (current != null && previous != null)
-        {
-          var direction = 0;
-          var change = current.Value - previous.Value;
-          var gain = Math.Abs(Math.Max(change, 0.0));
-          var loss = Math.Abs(Math.Min(change, 0.0));
+        direction = previous.Value < current.Value ? 1 : direction;
+        direction = previous.Value > current.Value ? -1 : direction;
 
-          direction = previous.Value < current.Value ? 1 : direction;
-          direction = previous.Value > current.Value ? -1 : direction;
+        seriesItem = UpdateSeries(seriesInverse, direction, seriesItem, seriesItems);
+        seriesItem.Gain += gain;
+        seriesItem.Loss += loss;
+        seriesItem.WinCount += gain > 0 ? 1 : 0;
+        seriesItem.LossCount += loss > 0 ? 1 : 0;
+        seriesItem.Count++;
 
-          seriesItem = UpdateSeries(seriesInverse, direction, seriesItem, seriesItems);
-          seriesItem.Gain += gain;
-          seriesItem.Loss += loss;
-          seriesItem.WinCount += gain > 0 ? 1 : 0;
-          seriesItem.LossCount += loss > 0 ? 1 : 0;
-          seriesItem.Count++;
-
-          seriesInverse = direction;
-        }
+        seriesInverse = direction;
       }
 
       var response = new SeriesResponse

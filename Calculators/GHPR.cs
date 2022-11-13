@@ -1,9 +1,9 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// GHPR or geometric holding period returns
@@ -18,7 +18,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -26,20 +26,25 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var sum = 1.0;
-      var count = Values.Count();
-      var input = Values.FirstOrDefault();
-      var output = Values.LastOrDefault();
+      var count = Items.Count;
 
-      if (count == 0 || input == null || output == null || input.Value == 0)
+      if (count < 2)
+      {
+        return 0;
+      }
+
+      var sum = 1.0;
+      var input = Items.First();
+
+      if (input.Value == 0)
       {
         return 0.0;
       }
 
       for (var i = 1; i < count; i++)
       {
-        var currentValue = Values.ElementAtOrDefault(i)?.Value ?? 0.0;
-        var previousValue = Values.ElementAtOrDefault(i - 1)?.Value ?? 0.0;
+        var currentValue = Items.ElementAtOrDefault(i).Value;
+        var previousValue = Items.ElementAtOrDefault(i - 1).Value;
 
         sum *= currentValue / previousValue;
       }

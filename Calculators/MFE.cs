@@ -1,8 +1,8 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// Maximum favorable excursion
@@ -13,7 +13,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -21,12 +21,14 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      if (Values.Any() == false)
+      var count = Items.Count;
+
+      if (count < 2)
       {
-        return 0.0;
+        return 0;
       }
 
-      return Values.Average(o => o.Max - o.Value);
+      return Items.Average(o => o.Max - o.Value);
     }
   }
 }

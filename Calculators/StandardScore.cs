@@ -1,9 +1,9 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// Standard Z-Score 
@@ -23,7 +23,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -31,7 +31,13 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var count = Values.Count();
+      var count = Items.Count;
+
+      if (count < 2)
+      {
+        return 0;
+      }
+
       var gains = 0;
       var losses = 0;
       var seriesGains = 0;
@@ -40,8 +46,8 @@ namespace ExScore.ScoreSpace
 
       for (var i = 1; i < count; i++)
       {
-        var currentValue = Values.ElementAtOrDefault(i)?.Value ?? 0.0;
-        var previousValue = Values.ElementAtOrDefault(i - 1)?.Value ?? 0.0;
+        var currentValue = Items.ElementAtOrDefault(i).Value;
+        var previousValue = Items.ElementAtOrDefault(i - 1).Value;
         var direction = previousValue > currentValue ? -1 : 1;
 
         switch (direction)

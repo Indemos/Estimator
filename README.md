@@ -5,7 +5,7 @@ Used for trading strategy evaluation in the [Terminal](https://github.com/Indemo
 # Nuget
 
 ```
-Install-Package ExScore
+Install-Package Stats
 ```
 
 # Metrics 

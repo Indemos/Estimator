@@ -1,9 +1,9 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// LR Correlation
@@ -22,7 +22,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -30,9 +30,9 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var seriesX = Values
+      var seriesX = Items
         .Select(o => o.Value)
-        .Where(o => o != 0)
+        .Where(o => Equals(o, 0) is false)
         .ToList();
 
       if (seriesX.Count == 0)

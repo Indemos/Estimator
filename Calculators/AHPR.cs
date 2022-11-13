@@ -1,9 +1,8 @@
-using ExScore.ModelSpace;
-using System;
+using Stats.ModelSpace;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// AHPR or average holding period returns
@@ -18,7 +17,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -27,17 +26,17 @@ namespace ExScore.ScoreSpace
     public virtual double Calculate()
     {
       var sum = 0.0;
-      var count = Values.Count();
+      var count = Items.Count;
 
-      if (count == 0)
+      if (count < 2)
       {
-        return 0.0;
+        return 0;
       }
 
       for (var i = 1; i < count; i++)
       {
-        var currentValue = Values.ElementAtOrDefault(i)?.Value ?? 0.0;
-        var previousValue = Values.ElementAtOrDefault(i - 1)?.Value ?? 0.0;
+        var currentValue = Items.ElementAtOrDefault(i).Value;
+        var previousValue = Items.ElementAtOrDefault(i - 1).Value;
 
         sum += currentValue / previousValue;
       }

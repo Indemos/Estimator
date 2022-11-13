@@ -1,9 +1,9 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// MAR ratio
@@ -17,7 +17,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -25,23 +25,23 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var cagr = new CAGR
+      var count = Items.Count;
+
+      if (count < 2)
       {
-        Values = Values
-      };
+        return 0;
+      }
 
       var maxLoss = 0.0;
-      var count = Values.Count();
-
-      if (count == 0)
+      var cagr = new CAGR
       {
-        return 0.0;
-      }
+        Items = Items
+      };
 
       for (var i = 1; i < count; i++)
       {
-        var currentValue = Values.ElementAtOrDefault(i)?.Value ?? 0;
-        var previousValue = Values.ElementAtOrDefault(i - 1)?.Value ?? 0;
+        var currentValue = Items.ElementAtOrDefault(i).Value;
+        var previousValue = Items.ElementAtOrDefault(i - 1).Value;
 
         if (previousValue > currentValue)
         {

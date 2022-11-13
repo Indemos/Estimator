@@ -1,10 +1,10 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using MathNet.Numerics.Financial;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// Reward to risk ratio for a selected period measuring downside
@@ -20,12 +20,12 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Interest rate
     /// </summary>
-    public virtual double InterestRate { get; set; } = 0.0;
+    public virtual double InterestRate { get; set; } = 0;
 
     /// <summary>
     /// Calculate
@@ -33,20 +33,21 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var input = Values.FirstOrDefault();
-      var output = Values.LastOrDefault();
+      var count = Items.Count;
 
-      if (input == null || output == null)
+      if (count < 2)
       {
-        return 0.0;
+        return 0;
       }
 
+      var input = Items.First();
+      var output = Items.Last();
       var cagr = new CAGR
       {
-        Values = Values
+        Items = Items
       };
 
-      var values = Values.Select((o, i) => o.Value - Values.ElementAtOrDefault(i - 1)?.Value ?? 0.0);
+      var values = Items.Select((o, i) => o.Value - Items.ElementAtOrDefault(i - 1).Value);
       var excessGain = cagr.Calculate() - InterestRate;
       var days = output.Time.Subtract(input.Time).Duration().Days + 1.0;
       var downsideDeviation = values.DownsideDeviation(0);

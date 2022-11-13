@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ModelSpace
+namespace Stats.ModelSpace
 {
   /// <summary>
   /// Single time frame data
@@ -26,12 +26,12 @@ namespace ExScore.ModelSpace
   /// <summary>
   /// Statistics grouped by time frames
   /// </summary>
-  public class FrameMetrics
+  public class FrameScore
   {
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Values { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -47,12 +47,9 @@ namespace ExScore.ModelSpace
         var current = Values.ElementAtOrDefault(i);
         var previous = Values.ElementAtOrDefault(i - 1);
 
-        if (current != null && previous != null)
-        {
-          CreateStatsByFrame(current, previous, current.Time.Hour.ToString(), stats.Hours);
-          CreateStatsByFrame(current, previous, current.Time.Month.ToString(), stats.Months);
-          CreateStatsByFrame(current, previous, current.Time.DayOfWeek.ToString(), stats.Days);
-        }
+        CreateStatsByFrame(current, previous, current.Time.Hour.ToString(), stats.Hours);
+        CreateStatsByFrame(current, previous, current.Time.Month.ToString(), stats.Months);
+        CreateStatsByFrame(current, previous, current.Time.DayOfWeek.ToString(), stats.Days);
       }
 
       return stats;

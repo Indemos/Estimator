@@ -1,10 +1,10 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using MathNet.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// Kestner ratio or K-Ratio
@@ -20,7 +20,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -28,26 +28,25 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var count = Values.Count();
+      var count = Items.Count;
 
-      if (count == 0)
+      if (count < 2)
       {
-        return 0.0;
+        return 0;
       }
 
       var deviation = 0.0;
       var regression = new double[count];
-      var slope = Math.Log(Values.Last().Value) / count;
+      var slope = Math.Log(Items.Last().Value) / count;
 
       for (var i = 0; i < count; i++)
       {
-        var v = Values.ElementAtOrDefault(i)?.Value ?? 0.0;
-        var log = Math.Log(v);
+        var value = Math.Log(Items.ElementAtOrDefault(i).Value);
 
-        if (double.IsNaN(log) == false)
+        if (double.IsNaN(value) is false)
         {
           regression[i] = regression.ElementAtOrDefault(i - 1) + slope;
-          deviation += Math.Pow(regression[i] - log, 2);
+          deviation += Math.Pow(regression[i] - value, 2);
         }
       }
 

@@ -1,9 +1,9 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
   /// Compound annual growth rate
@@ -20,7 +20,7 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Inputs values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -28,20 +28,21 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var input = Values.FirstOrDefault();
-      var output = Values.LastOrDefault();
+      var count = Items.Count;
 
-      if (input == null || output == null)
+      if (count < 2)
       {
-        return 0.0;
+        return 0;
       }
 
+      var input = Items.First();
+      var output = Items.Last();
       var days = 365.0 / (output.Time.Subtract(input.Time).Duration().Days + 1.0);
       var change = output.Value / Math.Max(input.Value, 1.0);
 
       if (change == 0)
       {
-        return 0.0;
+        return 0;
       }
 
       return Math.Pow(change, days) - 1.0;

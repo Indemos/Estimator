@@ -1,30 +1,30 @@
-using ExScore.ModelSpace;
+using Stats.ModelSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ScoreSpace
+namespace Stats.ScoreSpace
 {
   /// <summary>
-  /// Ulcer index ratio
-  /// Measures downside volatility of the deviation
+  /// Sterling ratio
+  /// A ratio between returns and average loss
   /// IR = Interest Rate
   /// CAGR = Compound annual growth rate
   /// DD = Drawdown when the previous return is greater then the next
-  /// RMSDD = Root mean square of all drawdowns in a series = (Sum(DD) / Count(DD)) ^ (1 / 2)
-  /// MAR = (CAGR - IR) / RMSDD
+  /// AVGDD = Root mean square of all drawdowns in a series = Sum(DD) / Count(DD)
+  /// MAR = (CAGR - IR) / AVGDD
   /// </summary>
-  public class MartinRatio
+  public class SterlingRatio
   {
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IEnumerable<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Interest rate
     /// </summary>
-    public virtual double? InterestRate { get; set; } = 0.0;
+    public virtual double InterestRate { get; set; } = 0.0;
 
     /// <summary>
     /// Calculate
@@ -32,23 +32,23 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
+      var count = Items.Count;
+
+      if (count < 2)
+      {
+        return 0;
+      }
+
+      var losses = new List<double>();
       var cagr = new CAGR
       {
-        Values = Values
+        Items = Items
       };
-
-      var count = Values.Count();
-      var losses = new List<double>();
-
-      if (count == 0)
-      {
-        return 0.0;
-      }
 
       for (var i = 1; i < count; i++)
       {
-        var currentValue = Values.ElementAtOrDefault(i)?.Value ?? 0;
-        var previousValue = Values.ElementAtOrDefault(i - 1)?.Value ?? 0;
+        var currentValue = Items.ElementAtOrDefault(i).Value;
+        var previousValue = Items.ElementAtOrDefault(i - 1).Value;
 
         if (previousValue > currentValue)
         {
@@ -58,7 +58,7 @@ namespace ExScore.ScoreSpace
 
       var averageLoss = losses.Any() ? losses.Average() : 1.0;
 
-      return (cagr.Calculate() - InterestRate.Value) / Math.Sqrt(averageLoss);
+      return (cagr.Calculate() - InterestRate) / averageLoss;
     }
   }
 }
