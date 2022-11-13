@@ -1,8 +1,8 @@
-using Stats.ModelSpace;
+using Score.ModelSpace;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Stats.ScoreSpace
+namespace Score.ScoreSpace
 {
   /// <summary>
   /// Maximum adverse excursion

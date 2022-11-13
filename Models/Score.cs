@@ -1,9 +1,9 @@
-using Stats.ScoreSpace;
+using Score.ScoreSpace;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Stats.ModelSpace
+namespace Score.ModelSpace
 {
   /// <summary>
   /// Generic position model
@@ -139,8 +139,8 @@ namespace Stats.ModelSpace
         new ScoreData { Group = "Balance", Name = "Drawdown %", Value = -Validate(() => balanceDrawdown * 100.0 / balanceMax) },
         new ScoreData { Group = "Balance", Name = "Equity drawdown $", Value = -balanceDrawdownMax },
         new ScoreData { Group = "Balance", Name = "Equity drawdown %", Value = -Validate(() => balanceDrawdownMax * 100.0 / balanceMax) },
-        new ScoreData { Group = "Balance", Name = "Change $", Value = new ROC { Items = Values }.Calculate(0) },
-        new ScoreData { Group = "Balance", Name = "Change %", Value = new ROC { Items = Values }.Calculate(1) },
+        new ScoreData { Group = "Balance", Name = "ROC $", Value = new ROC { Items = Values }.Calculate(0) },
+        new ScoreData { Group = "Balance", Name = "ROC %", Value = new ROC { Items = Values }.Calculate(1) },
 
         new ScoreData { Group = "Wins", Name = "Total gain $", Value = gains },
         new ScoreData { Group = "Wins", Name = "Max single gain $", Value = gainsMax },

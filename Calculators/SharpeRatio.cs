@@ -1,10 +1,10 @@
-using Stats.ModelSpace;
+using Score.ModelSpace;
 using MathNet.Numerics.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Stats.ScoreSpace
+namespace Score.ScoreSpace
 {
   /// <summary>
   /// Reward to risk ratio for a selected period

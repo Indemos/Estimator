@@ -1,8 +1,8 @@
-using Stats.ModelSpace;
+using Score.ModelSpace;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Stats.ScoreSpace
+namespace Score.ScoreSpace
 {
   /// <summary>
   /// Edge ratio or E-Ratio

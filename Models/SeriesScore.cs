@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Stats.ModelSpace
+namespace Score.ModelSpace
 {
   /// <summary>
   /// Single series data

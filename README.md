@@ -5,10 +5,10 @@ Used for trading strategy evaluation in the [Terminal](https://github.com/Indemo
 # Nuget
 
 ```
-Install-Package Stats
+Install-Package ExScore
 ```
 
-# Metrics 
+# Ratios 
 
 * AHPR - average holding period returns
 * GHPR - geometric holding period returns
