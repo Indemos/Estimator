@@ -66,11 +66,11 @@ namespace ExScore.ModelSpace
     /// Calculate
     /// </summary>
     /// <returns></returns>
-    public virtual IDictionary<string, IEnumerable<ScoreData>> Calculate()
+    public virtual IDictionary<string, IList<ScoreData>> Calculate()
     {
       if (Values.Any() is false)
       {
-        return new Dictionary<string, IEnumerable<ScoreData>>();
+        return new Dictionary<string, IList<ScoreData>>();
       }
 
       var balanceMax = 0.0;
@@ -193,7 +193,7 @@ namespace ExScore.ModelSpace
       StatsByFrames = new FrameScore { Values = Values }.Calculate();
       StatsBySeries = new SeriesScore { Values = Values }.Calculate();
 
-      return stats.GroupBy(o => o.Group).ToDictionary(o => o.Key, o => o.AsEnumerable());
+      return stats.GroupBy(o => o.Group).ToDictionary(o => o.Key, o => o.ToList() as IList<ScoreData>);
     }
 
     /// <summary>
