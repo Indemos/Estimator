@@ -75,7 +75,8 @@ namespace ExScore.ModelSpace
 
       var balanceMax = 0.0;
       var balanceDrawdown = 0.0;
-      var balanceDrawdownMax = 0.0;
+      var equityMax = 0.0;
+      var equityDrawdown = 0.0;
       var count = Values.Count();
       var longs = new DirectionData();
       var shorts = new DirectionData();
@@ -90,9 +91,10 @@ namespace ExScore.ModelSpace
         var itemGain = Math.Abs(Math.Max(item, 0.0));
         var itemLoss = Math.Abs(Math.Min(item, 0.0));
 
-        balanceDrawdownMax = Math.Max(balanceMax - current.Min, balanceDrawdownMax);
-        balanceDrawdown = Math.Max(balanceMax - current.Value, balanceDrawdown);
+        equityMax = Math.Max(equityMax, current.Max);
         balanceMax = Math.Max(balanceMax, current.Value);
+        equityDrawdown = Math.Max(equityMax - current.Min, equityDrawdown);
+        balanceDrawdown = Math.Max(balanceMax - current.Value, balanceDrawdown);
 
         switch (current.Direction)
         {
@@ -137,8 +139,8 @@ namespace ExScore.ModelSpace
         new ScoreData { Group = "Balance", Name = "Commissions $", Value = longs.Commissions + shorts.Commissions },
         new ScoreData { Group = "Balance", Name = "Drawdown $", Value = -balanceDrawdown },
         new ScoreData { Group = "Balance", Name = "Drawdown %", Value = -Validate(() => balanceDrawdown * 100.0 / balanceMax) },
-        new ScoreData { Group = "Balance", Name = "Equity drawdown $", Value = -balanceDrawdownMax },
-        new ScoreData { Group = "Balance", Name = "Equity drawdown %", Value = -Validate(() => balanceDrawdownMax * 100.0 / balanceMax) },
+        new ScoreData { Group = "Balance", Name = "Equity drawdown $", Value = -equityDrawdown },
+        new ScoreData { Group = "Balance", Name = "Equity drawdown %", Value = -Validate(() => equityDrawdown * 100.0 / equityMax) },
         new ScoreData { Group = "Balance", Name = "ROC $", Value = new ROC { Items = Values }.Calculate(0) },
         new ScoreData { Group = "Balance", Name = "ROC %", Value = new ROC { Items = Values }.Calculate(1) },
 
