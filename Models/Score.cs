@@ -77,13 +77,13 @@ namespace ExScore.ModelSpace
       var balanceDrawdown = 0.0;
       var equityMax = 0.0;
       var equityDrawdown = 0.0;
-      var count = Values.Count();
+      var count = Values.Count;
       var longs = new DirectionData();
       var shorts = new DirectionData();
       var inputBalance = Values.ElementAtOrDefault(0);
       var outputBalance = Values.ElementAtOrDefault(count - 1);
 
-      for (var i = 0; i < count; i++)
+      for (var i = 1; i < count; i++)
       {
         var current = Values.ElementAtOrDefault(i);
         var previous = Values.ElementAtOrDefault(i - 1);

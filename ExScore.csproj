@@ -6,7 +6,7 @@
   
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.1.1-prerelease</Version>
+    <Version>1.1.2-prerelease</Version>
     <Authors>artemiusgreat</Authors>
     <Description>Statistics and performance metrics in trading, CAGR, Sharpe, MAE, MFE, and others.</Description>
     <Copyright>http://indemos.com</Copyright>
