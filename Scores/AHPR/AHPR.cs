@@ -1,34 +1,25 @@
+using ExScore.ExtensionSpace;
 using ExScore.ModelSpace;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ExScore.ScoreSpace
 {
-  /// <summary>
-  /// Maximum adverse excursion
-  /// Maximum unrealized loss
-  /// </summary>
-  public class MAE
+  public class AHPR
   {
     /// <summary>
-    /// Input values
+    /// Inputs
     /// </summary>
     public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
     /// </summary>
-    /// <returns></returns>
     public virtual double Calculate()
     {
-      var count = Items.Count;
+      var mean = 0.0;
+      var samples = Items.Percents((x, y) => mean += 1.0 + y.Value);
 
-      if (count < 2)
-      {
-        return 0;
-      }
-
-      return Items.Average(o => o.Value - o.Min);
+      return (mean / samples.Count).Round();
     }
   }
 }

@@ -1,6 +1,5 @@
+using ExScore.ExtensionSpace;
 using ExScore.ModelSpace;
-using MathNet.Numerics;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,7 +7,7 @@ namespace ExScore.ScoreSpace
 {
   /// <summary>
   /// Kestner ratio or K-Ratio
-  /// Deviation from the expected returns curve
+  /// Deviation from the expected returns curve and volatility
   /// KR = Kestner ratio
   /// N = Number of observations
   /// Slope = Coefficient that defines how steep the optimal regression line should be
@@ -25,34 +24,23 @@ namespace ExScore.ScoreSpace
     /// <summary>
     /// Calculate
     /// </summary>
-    /// <returns></returns>
     public virtual double Calculate()
     {
       var count = Items.Count;
+      var items = new InputData[count];
+      var regression = new InputData[count];
+      var step = (Items.Last().Value - Items.First().Value) / count;
 
-      if (count < 2)
+      for (var i = 1; i < count; i++)
       {
-        return 0;
+        items[i] = new InputData { Value = Items[i].Value - Items[i - 1].Value };
+        regression[i] = new InputData { Value = regression[i - 1].Value + step };
       }
 
-      var deviation = 0.0;
-      var regression = new double[count];
-      var slope = Math.Log(Items.Last().Value) / count;
+      var slope = 1.0; // new Covariance { ItemsX = items, ItemsY = regression }.Calculate();
+      var error = 1.0; // new StandardError { Items = Items }.Calculate();
 
-      for (var i = 0; i < count; i++)
-      {
-        var value = Math.Log(Items.ElementAtOrDefault(i).Value);
-
-        if (double.IsNaN(value) is false)
-        {
-          regression[i] = regression.ElementAtOrDefault(i - 1) + slope;
-          deviation += Math.Pow(regression[i] - value, 2);
-        }
-      }
-
-      var error = Math.Sqrt(deviation / count) / Math.Sqrt(count);
-
-      return slope / (error * count);
+      return (slope / (error * count)).Round();
     }
   }
 }

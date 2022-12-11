@@ -1,3 +1,4 @@
+using ExScore.ExtensionSpace;
 using ExScore.ModelSpace;
 using System;
 using System.Collections.Generic;
@@ -31,18 +32,12 @@ namespace ExScore.ScoreSpace
     /// <returns></returns>
     public virtual double Calculate()
     {
-      var count = Items.Count;
-
-      if (count < 2)
-      {
-        return 0;
-      }
-
       var gains = 0;
       var losses = 0;
       var seriesGains = 0;
       var seriesLosses = 0;
       var seriesInverse = 0;
+      var count = Items.Count;
 
       for (var i = 1; i < count; i++)
       {
@@ -74,7 +69,7 @@ namespace ExScore.ScoreSpace
         return 0.0;
       }
 
-      return Math.Sqrt(count * (dealsCount - 0.5) - seriesCount) / divisor;
+      return (Math.Sqrt(count * (dealsCount - 0.5) - seriesCount) / divisor).Round();
     }
   }
 }

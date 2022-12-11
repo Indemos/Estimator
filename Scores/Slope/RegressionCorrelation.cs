@@ -1,3 +1,4 @@
+using ExScore.ExtensionSpace;
 using ExScore.ModelSpace;
 using System;
 using System.Collections.Generic;
@@ -20,20 +21,19 @@ namespace ExScore.ScoreSpace
   public class RegressionCorrelation
   {
     /// <summary>
-    /// Input values
+    /// Inputs
     /// </summary>
     public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
     /// </summary>
-    /// <returns></returns>
     public virtual double Calculate()
     {
       var seriesX = Items
-        .Select(o => o.Value)
-        .Where(o => Equals(o, 0) is false)
-        .ToList();
+              .Select(o => o.Value)
+              .Where(o => Equals(o, 0) is false)
+              .ToList();
 
       if (seriesX.Count == 0)
       {

@@ -19,7 +19,6 @@ Install-Package ExScore
 * MAE - maximum adverse excursion or maximum unrealized loss 
 * MFE - maximum favorable excursion or maximum unrealized profit 
 * MAR ratio - minimum acceptance return or a gain-to-pain ratio between returns and max loss
-* Martin or Ulcer index ratio - downside volatility of the deviation
 * LR Correlation - correlation between a series and its linear regression
 * Sharpe ratio - reward to risk ratio for a selected period
 * Sortino ratio - reward to risk ratio for a selected period measuring downside
