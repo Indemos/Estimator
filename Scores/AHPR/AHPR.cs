@@ -17,7 +17,7 @@ namespace ExScore.ScoreSpace
     public virtual double Calculate()
     {
       var mean = 0.0;
-      var samples = Items.Percents((x, y) => mean += 1.0 + y.Value);
+      var samples = Items.Percents((items, i) => mean += 1.0 + items[i].Value);
 
       return (mean / samples.Count).Round();
     }

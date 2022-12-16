@@ -36,19 +36,21 @@ namespace ExScore.ScoreSpace
     public virtual double Calculate()
     {
       var mean = 0.0;
-      var meanSamples = Items.Percents((x, y) => mean += y.Value);
+      var meanSamples = Items.Percents((items, i) => mean += items[i].Value);
 
       mean /= meanSamples.Count;
 
       var denominator = 0.0;
-      var devSamples = Items.Percents((x, y) =>
+      var devSamples = Items.Percents((items, i) =>
       {
+        var value = items[i].Value;
+
         switch (Mode)
         {
-          case ModeEnum.Mar: denominator = Math.Min(y.Value, denominator); break;
-          case ModeEnum.Sharpe: denominator += (y.Value - mean) * (y.Value - mean); break;
-          case ModeEnum.Sortino: denominator += y.Value < 0 ? (y.Value - mean) * (y.Value - mean) : 0; break;
-          case ModeEnum.Sterling: denominator += y.Value < 0 ? y.Value : 0; break;
+          case ModeEnum.Mar: denominator = Math.Min(value, denominator); break;
+          case ModeEnum.Sharpe: denominator += (value - mean) * (value - mean); break;
+          case ModeEnum.Sortino: denominator += value < 0 ? (value - mean) * (value - mean) : 0; break;
+          case ModeEnum.Sterling: denominator += value < 0 ? value : 0; break;
         }
       });
 

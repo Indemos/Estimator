@@ -10,7 +10,7 @@ HPR = 1 + 0.10 = 1.10
 A trade resulted in a loss of 10%. 
 
 ```
-HPR = 1 - 0. 10 = 0.90
+HPR = 1 - 0.10 = 0.90
 ```
 
 You can also obtain the value of HPR for a trade by dividing the balance value after the trade has been closed by the balance value at opening of the trade. 

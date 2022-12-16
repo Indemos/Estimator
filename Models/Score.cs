@@ -187,7 +187,7 @@ namespace ExScore.ModelSpace
         new ScoreData { Group = "Ratios", Name = "Sortino", Value = new RAR { Items = Values, Mode = ModeEnum.Sortino }.Calculate() },
         new ScoreData { Group = "Ratios", Name = "Sterling", Value = new RAR { Items = Values, Mode = ModeEnum.Sterling }.Calculate() },
         new ScoreData { Group = "Ratios", Name = "Kestner", Value = new KestnerRatio { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "LR Correlation", Value = new RegressionCorrelation { Items = Values }.Calculate() }
+        new ScoreData { Group = "Ratios", Name = "LR Correlation", Value = new RegressionCorrelation { Items = Values }.Calculate().Correlation }
       };
 
       StatsByFrames = new FrameScore { Values = Values }.Calculate();

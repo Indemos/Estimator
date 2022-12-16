@@ -1,7 +1,6 @@
 using ExScore.ModelSpace;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ExScore.ExtensionSpace
 {
@@ -12,7 +11,7 @@ namespace ExScore.ExtensionSpace
     /// </summary>
     /// <param name="items"></param>
     /// <param name="action"></param>
-    public static IList<InputData> Samples(this IList<InputData> items, Action<InputData, InputData> action)
+    public static IList<InputData> Samples(this IList<InputData> items, Action<IList<InputData>, int> action)
     {
       return Items(items, (x, y) => y.Value - x.Value, action);
     }
@@ -22,7 +21,7 @@ namespace ExScore.ExtensionSpace
     /// </summary>
     /// <param name="items"></param>
     /// <param name="action"></param>
-    public static IList<InputData> Logs(this IList<InputData> items, Action<InputData, InputData> action)
+    public static IList<InputData> Logs(this IList<InputData> items, Action<IList<InputData>, int> action)
     {
       return Items(items, (x, y) => Math.Log(y.Value / x.Value), action);
     }
@@ -32,7 +31,7 @@ namespace ExScore.ExtensionSpace
     /// </summary>
     /// <param name="items"></param>
     /// <param name="action"></param>
-    public static IList<InputData> Percents(this IList<InputData> items, Action<InputData, InputData> action)
+    public static IList<InputData> Percents(this IList<InputData> items, Action<IList<InputData>, int> action)
     {
       return Items(items, (x, y) => (y.Value - x.Value) / x.Value, action);
     }
@@ -46,7 +45,7 @@ namespace ExScore.ExtensionSpace
     private static IList<InputData> Items(
       IList<InputData> items,
       Func<InputData, InputData, double> process,
-      Action<InputData, InputData> response)
+      Action<IList<InputData>, int> response)
     {
       var samples = new InputData[items.Count - 1];
 
@@ -54,7 +53,7 @@ namespace ExScore.ExtensionSpace
       {
         samples[i - 1] = items[i];
         samples[i - 1].Value = process(items[i - 1], items[i]);
-        response(samples.ElementAtOrDefault(i - 2), samples.ElementAtOrDefault(i - 1));
+        response(samples, i - 1);
       }
 
       return samples;
