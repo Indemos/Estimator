@@ -25,7 +25,7 @@ SR = (AHPR - (1 + RFR)) / SD
 For intraday strategies, RFR is irrelevant. 
 
 ```
-SR = (N ^ 2) * Mean / SD
+SR = (N ^ 1/2) * Mean / SD
 ```
 - Mean - Average return
 - SD - Standard deviation in decimal points of percents

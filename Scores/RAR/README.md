@@ -5,7 +5,7 @@ In other words, it checks if the current strategy is more profitable then risk f
 For intraday strategies, the risk-free rate can be considered to be 0 since we don't roll over positions, there is no interest charge.
 
 ```
-RAR = (N ^ 2) * Mean / Risk
+RAR = (N ^ 1/2) * Mean / Risk
 ```
 
 - Mean - Average return

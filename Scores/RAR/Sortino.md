@@ -15,7 +15,7 @@ Martin = (CAGR - RFR) / UlcerIndex
 For intraday strategies, RFR is irrelevant. 
 
 ```
-SR = (N ^ 2) * Mean / DSD
+SR = (N ^ 1/2) * Mean / DSD
 ```
 - Mean - Average return
 - DSD - Downside standard deviation in decimal points of percents

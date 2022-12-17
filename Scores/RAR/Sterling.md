@@ -31,7 +31,7 @@ SR = (Mean - RFR) / SD
 The risk-free rate can be considered to be 0 since we don't roll over positions, there is no interest charge.
 
 ```
-SR = (N ^ 2) * Mean / SD
+SR = (N ^ 1/2) * Mean / SD
 ```
 
 - N - number of trades
