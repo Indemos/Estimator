@@ -2,13 +2,11 @@
 
 Used for trading strategy evaluation in the [Terminal](https://github.com/Indemos/Terminal) application. 
 
-# Nuget
+# Package
 
 ```
 Install-Package ExScore
 ```
-
-# Status 
 
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Indemos/Statistics/dotnet.yml?event=push)
 ![GitHub](https://img.shields.io/github/license/Indemos/Statistics)
