@@ -12,6 +12,7 @@ Install-Package ExScore
 
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Indemos/Statistics/dotnet.yml?event=push)
 ![GitHub](https://img.shields.io/github/license/Indemos/Statistics)
+![GitHub]([https://img.shields.io/github/license/Indemos/Statistics](https://img.shields.io/badge/System-Windows%20%7C%20Linux%20%7C%20Mac-blue))
 
 # Ratios 
 
