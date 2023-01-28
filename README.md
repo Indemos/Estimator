@@ -2,7 +2,7 @@
 
 Used for trading strategy evaluation in the [Terminal](https://github.com/Indemos/Terminal) application. 
 
-# Package
+# Status
 
 ```
 Install-Package ExScore
