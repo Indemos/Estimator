@@ -1,4 +1,4 @@
-# Statistics and performance metrics in trading 
+# Statistics in trading 
 
 Used for trading strategy evaluation in the [Terminal](https://github.com/Indemos/Terminal) application. 
 
@@ -14,10 +14,7 @@ Install-Package Estimator
 
 # Ratios 
 
-* AHPR - average holding period returns
-* GHPR - geometric holding period returns
 * CAGR - compound annual growth rate
-* ROC - rate of change
 * Edge ratio or E-Ratio - ratio between MFE and MAE
 * Kestner ratio or K-Ratio - deviation from the expected returns curve
 * MAE - maximum adverse excursion or maximum unrealized loss 
