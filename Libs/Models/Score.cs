@@ -1,9 +1,9 @@
-using ExScore.ScoreSpace;
+using Estimator.Estimators;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ModelSpace
+namespace Estimator.Models
 {
   /// <summary>
   /// Generic position model
@@ -48,9 +48,14 @@ namespace ExScore.ModelSpace
   public class Score
   {
     /// <summary>
+    /// Original balance
+    /// </summary>
+    public virtual double Balance { get; set; }
+
+    /// <summary>
     /// Input values
     /// </summary>
-    public virtual IList<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Statistics grouped by time frames
@@ -68,7 +73,7 @@ namespace ExScore.ModelSpace
     /// <returns></returns>
     public virtual IDictionary<string, IList<ScoreData>> Calculate()
     {
-      if (Values.Any() is false)
+      if (Items.Any() is false)
       {
         return new Dictionary<string, IList<ScoreData>>();
       }
@@ -77,19 +82,16 @@ namespace ExScore.ModelSpace
       var balanceDrawdown = 0.0;
       var equityMax = 0.0;
       var equityDrawdown = 0.0;
-      var count = Values.Count;
+      var count = Items.Count;
       var longs = new DirectionData();
       var shorts = new DirectionData();
-      var inputBalance = Values.ElementAtOrDefault(0);
-      var outputBalance = Values.ElementAtOrDefault(count - 1);
+      var outputBalance = Items.Sum(o => o.Value);
 
       for (var i = 1; i < count; i++)
       {
-        var current = Values.ElementAtOrDefault(i);
-        var previous = Values.ElementAtOrDefault(i - 1);
-        var item = current.Value - previous.Value;
-        var itemGain = Math.Abs(Math.Max(item, 0.0));
-        var itemLoss = Math.Abs(Math.Min(item, 0.0));
+        var current = Items.ElementAtOrDefault(i);
+        var itemGain = Math.Abs(Math.Max(current.Value, 0.0));
+        var itemLoss = Math.Abs(Math.Min(current.Value, 0.0));
 
         equityMax = Math.Max(equityMax, current.Max);
         balanceMax = Math.Max(balanceMax, current.Value);
@@ -104,8 +106,8 @@ namespace ExScore.ModelSpace
             longs.Losses += itemLoss;
             longs.GainsMax = Math.Max(itemGain, longs.GainsMax);
             longs.LossesMax = Math.Max(itemLoss, longs.LossesMax);
-            longs.GainsCount += item > 0.0 ? 1 : 0;
-            longs.LossesCount += item < 0.0 ? 1 : 0;
+            longs.GainsCount += current.Value > 0.0 ? 1 : 0;
+            longs.LossesCount += current.Value < 0.0 ? 1 : 0;
             longs.Commissions += current.Commission;
             break;
 
@@ -115,8 +117,8 @@ namespace ExScore.ModelSpace
             shorts.Losses += itemLoss;
             shorts.GainsMax = Math.Max(itemGain, shorts.GainsMax);
             shorts.LossesMax = Math.Max(itemLoss, shorts.LossesMax);
-            shorts.GainsCount += item > 0.0 ? 1 : 0;
-            shorts.LossesCount += item < 0.0 ? 1 : 0;
+            shorts.GainsCount += current.Value > 0.0 ? 1 : 0;
+            shorts.LossesCount += current.Value < 0.0 ? 1 : 0;
             shorts.Commissions += current.Commission;
             break;
         }
@@ -136,62 +138,60 @@ namespace ExScore.ModelSpace
 
       var stats = new List<ScoreData>
       {
-        new ScoreData { Group = "Balance", Name = "Initial balance $", Value = inputBalance.Value },
-        new ScoreData { Group = "Balance", Name = "Final balance $", Value = outputBalance.Value },
+        new ScoreData { Group = "Balance", Name = "Gain $", Value = outputBalance },
         new ScoreData { Group = "Balance", Name = "Commissions $", Value = longs.Commissions + shorts.Commissions },
         new ScoreData { Group = "Balance", Name = "Drawdown $", Value = -balanceDrawdown },
-        new ScoreData { Group = "Balance", Name = "Drawdown %", Value = -Validate(() => balanceDrawdown * 100.0 / balanceMax) },
+        new ScoreData { Group = "Balance", Name = "Drawdown %", Value = -Validate(() => balanceDrawdown * 100.0 / (Balance + balanceMax)) },
         new ScoreData { Group = "Balance", Name = "Equity drawdown $", Value = -equityDrawdown },
-        new ScoreData { Group = "Balance", Name = "Equity drawdown %", Value = -Validate(() => equityDrawdown * 100.0 / equityMax) },
+        new ScoreData { Group = "Balance", Name = "Equity drawdown %", Value = -Validate(() => equityDrawdown * 100.0 / (Balance + equityMax)) },
 
-        new ScoreData { Group = "Wins", Name = "Total gain $", Value = wins },
-        new ScoreData { Group = "Wins", Name = "Max single gain $", Value = winsMax },
-        new ScoreData { Group = "Wins", Name = "Average gain $", Value = winsAverage },
+        new ScoreData { Group = "Wins", Name = "Total $", Value = wins },
+        new ScoreData { Group = "Wins", Name = "Max $", Value = winsMax },
+        new ScoreData { Group = "Wins", Name = "Average $", Value = winsAverage },
         new ScoreData { Group = "Wins", Name = "Number of wins", Value = winsCount },
-        new ScoreData { Group = "Wins", Name = "Percentage of wins %", Value = winsPercents * 100.0 },
+        new ScoreData { Group = "Wins", Name = "Percentage %", Value = winsPercents * 100.0 },
 
-        new ScoreData { Group = "Losses", Name = "Total loss $", Value = -losses },
-        new ScoreData { Group = "Losses", Name = "Max single loss $", Value = -lossesMax },
-        new ScoreData { Group = "Losses", Name = "Average loss $", Value = -lossesAverage },
+        new ScoreData { Group = "Losses", Name = "Total $", Value = -losses },
+        new ScoreData { Group = "Losses", Name = "Max $", Value = -lossesMax },
+        new ScoreData { Group = "Losses", Name = "Average $", Value = -lossesAverage },
         new ScoreData { Group = "Losses", Name = "Number of losses", Value = lossesCount },
-        new ScoreData { Group = "Losses", Name = "Percentage of losses %", Value = lossesPercents * 100.0 },
+        new ScoreData { Group = "Losses", Name = "Percentage %", Value = lossesPercents * 100.0 },
 
-        new ScoreData { Group = "Longs", Name = "Total gain $", Value = longs.Gains },
-        new ScoreData { Group = "Longs", Name = "Total loss $", Value = -longs.Losses },
+        new ScoreData { Group = "Longs", Name = "Gain $", Value = longs.Gains },
+        new ScoreData { Group = "Longs", Name = "Loss $", Value = -longs.Losses },
         new ScoreData { Group = "Longs", Name = "Max gain $", Value = longs.GainsMax },
         new ScoreData { Group = "Longs", Name = "Max loss $", Value = -longs.LossesMax },
         new ScoreData { Group = "Longs", Name = "Average gain $", Value = Validate(() => longs.Gains / longs.GainsCount) },
         new ScoreData { Group = "Longs", Name = "Average loss $", Value = -Validate(() => longs.Losses / longs.LossesCount) },
         new ScoreData { Group = "Longs", Name = "Number of longs", Value = longs.GainsCount + longs.LossesCount },
-        new ScoreData { Group = "Longs", Name = "Percentage of longs %", Value = Validate(() => (longs.GainsCount + longs.LossesCount) * 100.0 / dealsCount) },
+        new ScoreData { Group = "Longs", Name = "Percentage %", Value = Validate(() => (longs.GainsCount + longs.LossesCount) * 100.0 / dealsCount) },
 
-        new ScoreData { Group = "Shorts", Name = "Total gain $", Value = shorts.Gains },
-        new ScoreData { Group = "Shorts", Name = "Total loss $", Value = -shorts.Losses },
+        new ScoreData { Group = "Shorts", Name = "Gain $", Value = shorts.Gains },
+        new ScoreData { Group = "Shorts", Name = "Loss $", Value = -shorts.Losses },
         new ScoreData { Group = "Shorts", Name = "Max gain $", Value = shorts.GainsMax },
         new ScoreData { Group = "Shorts", Name = "Max loss $", Value = -shorts.LossesMax },
         new ScoreData { Group = "Shorts", Name = "Average gain $", Value = Validate(() => shorts.Gains / shorts.GainsCount) },
         new ScoreData { Group = "Shorts", Name = "Average loss $", Value = -Validate(() => shorts.Losses / shorts.LossesCount) },
         new ScoreData { Group = "Shorts", Name = "Number of shorts", Value = shorts.GainsCount + shorts.LossesCount },
-        new ScoreData { Group = "Shorts", Name = "Percentage of shorts %", Value = Validate(() => (shorts.GainsCount + shorts.LossesCount) * 100.0 / dealsCount) },
+        new ScoreData { Group = "Shorts", Name = "Percentage %", Value = Validate(() => (shorts.GainsCount + shorts.LossesCount) * 100.0 / dealsCount) },
 
-        new ScoreData { Group = "Ratios", Name = "PF", Value = new PF { Items = Values }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "PF", Value = new PF { Items = Items }.Calculate() },
         new ScoreData { Group = "Ratios", Name = "Expectation", Value = winsAverage * winsPercents - lossesAverage * lossesPercents },
-        new ScoreData { Group = "Ratios", Name = "MAE", Value = new MAE { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "MFE", Value = new MFE { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "E-Ratio", Value = new EdgeRatio { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "AHPR", Value = new AHPR { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "GHPR", Value = new GHPR { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "Z-Score", Value = new StandardScore { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "MAR", Value = new RAR { Items = Values, Mode = ModeEnum.Mar }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "Sharpe", Value = new RAR { Items = Values, Mode = ModeEnum.Sharpe }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "Sortino", Value = new RAR { Items = Values, Mode = ModeEnum.Sortino }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "Sterling", Value = new RAR { Items = Values, Mode = ModeEnum.Sterling }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "Kestner", Value = new KestnerRatio { Items = Values }.Calculate() },
-        new ScoreData { Group = "Ratios", Name = "LR Correlation", Value = new RegressionCorrelation { Items = Values }.Calculate().Correlation }
+        new ScoreData { Group = "Ratios", Name = "MAE", Value = new MAE { Items = Items }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "MFE", Value = new MFE { Items = Items }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "E-Ratio", Value = new EdgeRatio { Items = Items }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "CAGR", Value = new CAGR { Items = Items, Count = Items.Count }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "Z-Score", Value = new StandardScore { Items = Items }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "MAR", Value = new RAR { Items = Items, Count = Items.Count, Mode = ModeEnum.Mar }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "Sharpe", Value = new RAR { Items = Items, Count = Items.Count, Mode = ModeEnum.Sharpe }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "Sortino", Value = new RAR { Items = Items, Count = Items.Count, Mode = ModeEnum.Sortino }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "Sterling", Value = new RAR { Items = Items, Count = Items.Count, Mode = ModeEnum.Sterling }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "Kestner", Value = new KestnerRatio { Items = Items }.Calculate() },
+        new ScoreData { Group = "Ratios", Name = "LR Correlation", Value = new Regression { Items = Items }.Calculate().Correlation }
       };
 
-      StatsByFrames = new FrameScore { Values = Values }.Calculate();
-      StatsBySeries = new SeriesScore { Values = Values }.Calculate();
+      StatsByFrames = new FrameScore { Items = Items }.Calculate();
+      StatsBySeries = new SeriesScore { Items = Items }.Calculate();
 
       return stats.GroupBy(o => o.Group).ToDictionary(o => o.Key, o => o.ToList() as IList<ScoreData>);
     }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExScore.ModelSpace
+namespace Estimator.Models
 {
   /// <summary>
   /// Single series data
@@ -37,7 +37,7 @@ namespace ExScore.ModelSpace
     /// <summary>
     /// Input values
     /// </summary>
-    public virtual IList<InputData> Values { get; set; } = new List<InputData>();
+    public virtual IList<InputData> Items { get; set; } = new List<InputData>();
 
     /// <summary>
     /// Calculate
@@ -45,15 +45,15 @@ namespace ExScore.ModelSpace
     /// <returns></returns>
     public virtual SeriesResponse Calculate()
     {
-      var count = Values.Count();
+      var count = Items.Count;
       var seriesInverse = 0;
       var seriesItem = new SeriesData();
       var seriesItems = new List<SeriesData>();
 
       for (var i = 0; i < count; i++)
       {
-        var current = Values.ElementAtOrDefault(i);
-        var previous = Values.ElementAtOrDefault(i - 1);
+        var current = Items.ElementAtOrDefault(i);
+        var previous = Items.ElementAtOrDefault(i - 1);
         var direction = 0;
         var change = current.Value - previous.Value;
         var gain = Math.Abs(Math.Max(change, 0.0));

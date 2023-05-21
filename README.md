@@ -5,7 +5,7 @@ Used for trading strategy evaluation in the [Terminal](https://github.com/Indemo
 # Status
 
 ```
-Install-Package ExScore
+Install-Package Estimator
 ```
 
 ![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/Indemos/Statistics/dotnet.yml?event=push)

@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Version>1.0.1</Version>
+    <Description>Statistics and performance metrics in trading, CAGR, Sharpe, MAE, MFE, and others.</Description>
+    <Authors>artemiusgreat</Authors>
+    <Copyright>indemos.com</Copyright>
+    <PackageProjectUrl>http://indemos.com</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Indemos/Statistics</RepositoryUrl>
+    <PackageTags>finance trading metrics forex performance-metrics stock-market stocks futures strategies backtestings</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+</Project>
