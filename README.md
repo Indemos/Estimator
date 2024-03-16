@@ -19,7 +19,7 @@ Install-Package Estimator
 * Kestner ratio or K-Ratio - deviation from the expected returns curve
 * MAE - maximum adverse excursion or maximum unrealized loss 
 * MFE - maximum favorable excursion or maximum unrealized profit 
-* MAR ratio - minimum acceptance return or a gain-to-pain ratio between returns and max loss
+* MAR - minimum acceptance return or a gain-to-pain ratio between returns and max loss
 * LR Correlation - correlation between a series and its linear regression
 * Sharpe ratio - reward to risk ratio for a selected period
 * Sortino ratio - reward to risk ratio for a selected period measuring downside
