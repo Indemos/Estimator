@@ -10,10 +10,10 @@ namespace Estimator.Models
   /// </summary>
   public struct InputData
   {
-    public int Direction { get; set; }
     public double Min { get; set; }
     public double Max { get; set; }
     public double Value { get; set; }
+    public double Direction { get; set; }
     public double Commission { get; set; }
     public DateTime Time { get; set; }
   }
