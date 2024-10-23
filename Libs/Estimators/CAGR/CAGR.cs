@@ -1,4 +1,3 @@
-using Estimator.Extensions;
 using Estimator.Models;
 using System;
 using System.Collections.Generic;
@@ -21,6 +20,6 @@ namespace Estimator.Estimators
     /// <summary>
     /// Calculate
     /// </summary>
-    public virtual double Calculate() => (Math.Pow(Items.Sum(o => o.Value), 1.0 / Count) - 1.0).Round();
+    public virtual double Calculate() => Math.Pow(Items.Sum(o => o.Value), 1.0 / Count) - 1.0;
   }
 }

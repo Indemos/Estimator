@@ -6,7 +6,7 @@
   
   <PropertyGroup>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <Description>Statistics and performance metrics in trading, CAGR, Sharpe, MAE, MFE, and others.</Description>
     <Authors>artemiusgreat</Authors>
     <Copyright>indemos.com</Copyright>
@@ -15,5 +15,9 @@
     <PackageTags>finance trading metrics forex performance-metrics stock-market stocks futures strategies backtestings</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+  </ItemGroup>
 
 </Project>

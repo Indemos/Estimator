@@ -1,4 +1,3 @@
-using Estimator.Extensions;
 using Estimator.Models;
 using System;
 using System.Collections.Generic;
@@ -70,7 +69,7 @@ namespace Estimator.Estimators
         denominator = 1.0;
       }
 
-      return (Math.Sqrt(Count) * (mean - Rate) / denominator).Round();
+      return Math.Sqrt(Count) * (mean - Rate) / denominator;
     }
   }
 }

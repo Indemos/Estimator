@@ -1,4 +1,3 @@
-using Estimator.Extensions;
 using Estimator.Models;
 using System;
 using System.Collections.Generic;
@@ -26,7 +25,7 @@ namespace Estimator.Estimators
         error = 1.0;
       }
 
-      return (slope / error).Round();
+      return slope / error;
     }
   }
 }

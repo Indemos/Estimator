@@ -1,5 +1,5 @@
-using Estimator.Extensions;
 using Estimator.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,6 +15,6 @@ namespace Estimator.Estimators
     /// <summary>
     /// Calculate
     /// </summary>
-    public virtual double Calculate() => Items.Average(o => o.Value - o.Min).Round();
+    public virtual double Calculate() => Items.Average(o => o.Value - o.Min);
   }
 }

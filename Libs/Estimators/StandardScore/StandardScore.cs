@@ -1,4 +1,3 @@
-using Estimator.Extensions;
 using Estimator.Models;
 using System;
 using System.Collections.Generic;
@@ -48,7 +47,7 @@ namespace Estimator.Estimators
         deviation = 1.0;
       }
 
-      return ((seriesCount - mean - 0.5) / deviation).Round();
+      return (seriesCount - mean - 0.5) / deviation;
     }
   }
 }

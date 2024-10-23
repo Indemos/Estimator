@@ -1,5 +1,5 @@
-using Estimator.Extensions;
 using Estimator.Models;
+using System;
 using System.Collections.Generic;
 
 namespace Estimator.Estimators
@@ -19,7 +19,7 @@ namespace Estimator.Estimators
       var averageGain = new MFE { Items = Items }.Calculate();
       var averageLoss = new MAE { Items = Items }.Calculate();
 
-      return (averageGain / averageLoss).Round();
+      return averageGain / averageLoss;
     }
   }
 }
