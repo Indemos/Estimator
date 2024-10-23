@@ -1,6 +1,4 @@
-using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Factorization;
 using System;
 using System.Linq;
 
