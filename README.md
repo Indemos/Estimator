@@ -25,3 +25,8 @@ Install-Package Estimator
 * Sortino ratio - reward to risk ratio for a selected period measuring downside
 * Standard Z-Score - probability of the losing or winning strikes
 * Sterling ratio - ratio between returns and average loss
+
+# Services
+
+* Cointegration - Johansen test
+* Option - Black-Scholes model
