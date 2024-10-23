@@ -4,16 +4,16 @@ using System;
 
 namespace Estimator.Services
 {
-  public enum OptionSideEnum : byte
-  {
-    None = 0,
-    Put = 1,
-    Call = 2,
-    Share = 3
-  }
-
   public class OptionService
   {
+    protected enum OptionSideEnum : byte
+    {
+      None = 0,
+      Put = 1,
+      Call = 2,
+      Share = 3
+    }
+
     /// <summary>
     /// Asset or nothing
     /// </summary>
@@ -52,17 +52,17 @@ namespace Estimator.Services
     /// <param name="r">continuously compounded risk-free interest rate</param>
     /// <param name="q">continuously compounded dividend yield</param>
     /// <returns></returns>
-    public static double Premium(OptionSideEnum optionType, double S, double K, double T, double sigma, double r, double q)
+    public static double Premium(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
       double d1 = D1(S, K, T, sigma, r, q);
       double d2 = D2(T, sigma, d1);
 
       switch (optionType)
       {
-        case OptionSideEnum.Call:
+        case nameof(OptionSideEnum.Call):
           return S * Math.Exp(-q * T) * Normal.CDF(0, 1, d1) - K * Math.Exp(-r * T) * Normal.CDF(0, 1, d2);
 
-        case OptionSideEnum.Put:
+        case nameof(OptionSideEnum.Put):
           return K * Math.Exp(-r * T) * Normal.CDF(0, 1, -d2) - S * Math.Exp(-q * T) * Normal.CDF(0, 1, -d1);
       }
 
@@ -97,7 +97,7 @@ namespace Estimator.Services
     /// <param name="q"></param>
     /// <param name="optionMarketPrice"></param>
     /// <returns></returns>
-    public static double IV(OptionSideEnum optionType, double S, double K, double T, double r, double q, double optionMarketPrice)
+    public static double IV(string optionType, double S, double K, double T, double r, double q, double optionMarketPrice)
     {
       Func<double, double> f = sigma => Premium(optionType, S, K, T, sigma, r, q) - optionMarketPrice;
       Func<double, double> df = sigma => Vega(S, K, T, sigma, r, q);
@@ -116,14 +116,14 @@ namespace Estimator.Services
     /// <param name="r">continuously compounded risk-free interest rate</param>
     /// <param name="q">continuously compounded dividend yield</param>
     /// <returns></returns>
-    public static double Theta(OptionSideEnum optionType, double S, double K, double T, double sigma, double r, double q)
+    public static double Theta(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
       double d1 = D1(S, K, T, sigma, r, q);
       double d2 = D2(T, sigma, d1);
 
       switch (optionType)
       {
-        case OptionSideEnum.Call:
+        case nameof(OptionSideEnum.Call):
           {
             double theta = -Math.Exp(-q * T) * (S * Normal.PDF(0, 1, d1) * sigma) / (2.0 * Math.Sqrt(T))
                     - (r * K * Math.Exp(-r * T) * Normal.CDF(0, 1, d2))
@@ -132,7 +132,7 @@ namespace Estimator.Services
             return theta / 365;
           }
 
-        case OptionSideEnum.Put:
+        case nameof(OptionSideEnum.Put):
           {
             double theta = -Math.Exp(-q * T) * (S * Normal.PDF(0, 1, d1) * sigma) / (2.0 * Math.Sqrt(T))
                 + (r * K * Math.Exp(-r * T) * Normal.PDF(0, 1, -d2))
@@ -157,16 +157,16 @@ namespace Estimator.Services
     /// <param name="r">continuously compounded risk-free interest rate</param>
     /// <param name="q">continuously compounded dividend yield</param>
     /// <returns></returns>
-    public static double Delta(OptionSideEnum optionType, double S, double K, double T, double sigma, double r, double q)
+    public static double Delta(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
       double d1 = D1(S, K, T, sigma, r, q);
 
       switch (optionType)
       {
-        case OptionSideEnum.Call:
+        case nameof(OptionSideEnum.Call):
           return Math.Exp(-r * T) * Normal.CDF(0, 1, d1);
 
-        case OptionSideEnum.Put:
+        case nameof(OptionSideEnum.Put):
           return -Math.Exp(-r * T) * Normal.CDF(0, 1, -d1);
 
         default:
@@ -201,17 +201,17 @@ namespace Estimator.Services
     /// <param name="r">continuously compounded risk-free interest rate</param>
     /// <param name="q">continuously compounded dividend yield</param>
     /// <returns></returns>
-    public static double Rho(OptionSideEnum optionType, double S, double K, double T, double sigma, double r, double q)
+    public static double Rho(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
       double d1 = D1(S, K, T, sigma, r, q);
       double d2 = D2(T, sigma, d1);
 
       switch (optionType)
       {
-        case OptionSideEnum.Call:
+        case nameof(OptionSideEnum.Call):
           return K * T * Math.Exp(-r * T) * Normal.CDF(0, 1, d2);
 
-        case OptionSideEnum.Put:
+        case nameof(OptionSideEnum.Put):
           return -K * T * Math.Exp(-r * T) * Normal.CDF(0, 1, -d2);
 
         default:
