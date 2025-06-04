@@ -20,9 +20,9 @@ namespace Estimator.Estimators
       var slope = regression.Covariance / regression.DevY;
       var error = Math.Sqrt(regression.DevY / (Items.Count - 1));
 
-      if (error == 0)
+      if (error is 0)
       {
-        error = 1.0;
+        return slope;
       }
 
       return slope / error;

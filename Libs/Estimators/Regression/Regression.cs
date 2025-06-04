@@ -65,7 +65,7 @@ namespace Estimator.Estimators
 
       var deviation = devX * devY;
 
-      if (deviation == 0)
+      if (deviation is 0)
       {
         deviation = 1.0;
       }

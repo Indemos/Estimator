@@ -40,6 +40,11 @@ namespace Estimator.Estimators
     /// </summary>
     public virtual double Calculate()
     {
+      if (Items.Count is 0)
+      {
+        return 0;
+      }
+
       var mean = Items.Average(o => o.Value);
       var denominator = 0.0;
 
@@ -64,7 +69,7 @@ namespace Estimator.Estimators
         case ModeEnum.Sterling: denominator = Math.Abs(denominator / Items.Count); break;
       }
 
-      if (denominator == 0)
+      if (denominator is 0)
       {
         denominator = 1.0;
       }

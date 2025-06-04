@@ -20,6 +20,14 @@ namespace Estimator.Estimators
     /// <summary>
     /// Calculate
     /// </summary>
-    public virtual double Calculate() => Math.Pow(Items.Sum(o => o.Value), 1.0 / Count) - 1.0;
+    public virtual double Calculate()
+    {
+      if (Count is 0)
+      {
+        return 0;
+      }
+
+      return Math.Pow(Items.Sum(o => o.Value), 1.0 / Count) - 1.0;
+    }
   }
 }

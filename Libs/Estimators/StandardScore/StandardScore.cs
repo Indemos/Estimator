@@ -37,14 +37,21 @@ namespace Estimator.Estimators
       }
 
       var sum = gains + losses;
-      var product = 2 * gains * losses;
+      var product = 2.0 * gains * losses;
       var seriesCount = seriesGains + seriesLosses;
-      var mean = product / sum + 1;
-      var deviation = Math.Sqrt(product * (product - sum) / ((sum - 1.0) * sum * sum));
+      var mean = product / sum + 1.0;
+      var denominator = (sum - 1.0) * sum * sum;
 
-      if (deviation == 0)
+      if (denominator is 0)
       {
-        deviation = 1.0;
+        return 0;
+      }
+
+      var deviation = Math.Sqrt(product * (product - sum) / denominator);
+
+      if (deviation is 0)
+      {
+        return 0;
       }
 
       return (seriesCount - mean - 0.5) / deviation;

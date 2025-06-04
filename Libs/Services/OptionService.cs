@@ -8,7 +8,6 @@ namespace Estimator.Services
   {
     protected enum OptionSideEnum : byte
     {
-      None = 0,
       Put = 1,
       Call = 2,
       Share = 3
@@ -26,7 +25,7 @@ namespace Estimator.Services
     /// <returns></returns>
     private static double D1(double S, double K, double T, double sigma, double r, double q)
     {
-      return (Math.Log(S / K) + (r - q + (sigma * sigma) / 2) * T) / (sigma * Math.Sqrt(T));
+      return (Math.Log(S / K) + (r - q + (sigma * sigma) / 2.0) * T) / (sigma * Math.Sqrt(T));
     }
 
     /// <summary>
@@ -52,10 +51,10 @@ namespace Estimator.Services
     /// <param name="r">continuously compounded risk-free interest rate</param>
     /// <param name="q">continuously compounded dividend yield</param>
     /// <returns></returns>
-    public static double Premium(string optionType, double S, double K, double T, double sigma, double r, double q)
+    public static double Price(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
-      double d2 = D2(T, sigma, d1);
+      var d1 = D1(S, K, T, sigma, r, q);
+      var d2 = D2(T, sigma, d1);
 
       switch (optionType)
       {
@@ -81,9 +80,10 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double Vega(double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
-      double vega = S * Math.Exp(-q * T) * Normal.PDF(0, 1, d1) * Math.Sqrt(T);
-      return vega / 100;
+      var d1 = D1(S, K, T, sigma, r, q);
+      var vega = S * Math.Exp(-q * T) * Normal.PDF(0, 1, d1) * Math.Sqrt(T);
+
+      return vega / 100.0;
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double IV(string optionType, double S, double K, double T, double r, double q, double optionMarketPrice)
     {
-      Func<double, double> f = sigma => Premium(optionType, S, K, T, sigma, r, q) - optionMarketPrice;
+      Func<double, double> f = sigma => Price(optionType, S, K, T, sigma, r, q) - optionMarketPrice;
       Func<double, double> df = sigma => Vega(S, K, T, sigma, r, q);
 
       return RobustNewtonRaphson.FindRoot(f, df, lowerBound: 0, upperBound: 100, accuracy: 0.001);
@@ -118,32 +118,31 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double Theta(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
-      double d2 = D2(T, sigma, d1);
+      var d1 = D1(S, K, T, sigma, r, q);
+      var d2 = D2(T, sigma, d1);
 
       switch (optionType)
       {
         case nameof(OptionSideEnum.Call):
           {
-            double theta = -Math.Exp(-q * T) * (S * Normal.PDF(0, 1, d1) * sigma) / (2.0 * Math.Sqrt(T))
+            var theta = -Math.Exp(-q * T) * (S * Normal.PDF(0, 1, d1) * sigma) / (2.0 * Math.Sqrt(T))
                     - (r * K * Math.Exp(-r * T) * Normal.CDF(0, 1, d2))
                     + q * S * Math.Exp(-q * T) * Normal.CDF(0, 1, d1);
 
-            return theta / 365;
+            return theta / 365.0;
           }
 
         case nameof(OptionSideEnum.Put):
           {
-            double theta = -Math.Exp(-q * T) * (S * Normal.PDF(0, 1, d1) * sigma) / (2.0 * Math.Sqrt(T))
+            var theta = -Math.Exp(-q * T) * (S * Normal.PDF(0, 1, d1) * sigma) / (2.0 * Math.Sqrt(T))
                 + (r * K * Math.Exp(-r * T) * Normal.PDF(0, 1, -d2))
                 - q * S * Math.Exp(-q * T) * Normal.CDF(0, 1, -d1);
 
-            return theta / 365;
+            return theta / 365.0;
           }
-
-        default:
-          throw new NotSupportedException();
       }
+
+      return 0;
     }
 
     /// <summary>
@@ -159,19 +158,15 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double Delta(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
+      var d1 = D1(S, K, T, sigma, r, q);
 
       switch (optionType)
       {
-        case nameof(OptionSideEnum.Call):
-          return Math.Exp(-r * T) * Normal.CDF(0, 1, d1);
-
-        case nameof(OptionSideEnum.Put):
-          return -Math.Exp(-r * T) * Normal.CDF(0, 1, -d1);
-
-        default:
-          throw new NotSupportedException();
+        case nameof(OptionSideEnum.Call): return Math.Exp(-r * T) * Normal.CDF(0, 1, d1);
+        case nameof(OptionSideEnum.Put): return -Math.Exp(-r * T) * Normal.CDF(0, 1, -d1);
       }
+
+      return 0;
     }
 
     /// <summary>
@@ -186,7 +181,7 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double Gamma(double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
+      var d1 = D1(S, K, T, sigma, r, q);
       return Math.Exp(-q * T) * (Normal.PDF(0, 1, d1) / (S * sigma * Math.Sqrt(T)));
     }
 
@@ -203,20 +198,16 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double Rho(string optionType, double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
-      double d2 = D2(T, sigma, d1);
+      var d1 = D1(S, K, T, sigma, r, q);
+      var d2 = D2(T, sigma, d1);
 
       switch (optionType)
       {
-        case nameof(OptionSideEnum.Call):
-          return K * T * Math.Exp(-r * T) * Normal.CDF(0, 1, d2);
-
-        case nameof(OptionSideEnum.Put):
-          return -K * T * Math.Exp(-r * T) * Normal.CDF(0, 1, -d2);
-
-        default:
-          throw new NotSupportedException();
+        case nameof(OptionSideEnum.Call): return K * T * Math.Exp(-r * T) * Normal.CDF(0, 1, d2);
+        case nameof(OptionSideEnum.Put): return -K * T * Math.Exp(-r * T) * Normal.CDF(0, 1, -d2);
       }
+
+      return 0;
     }
 
     /// <summary>
@@ -231,8 +222,9 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double Vanna(double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
-      double vega = Vega(S, K, T, sigma, r, q);
+      var d1 = D1(S, K, T, sigma, r, q);
+      var vega = Vega(S, K, T, sigma, r, q);
+      
       return (d1 / sigma) * vega;
     }
 
@@ -248,9 +240,10 @@ namespace Estimator.Services
     /// <returns></returns>
     public static double Volga(double S, double K, double T, double sigma, double r, double q)
     {
-      double d1 = D1(S, K, T, sigma, r, q);
-      double d2 = D2(T, sigma, d1);
-      double vega = Vega(S, K, T, sigma, r, q);
+      var d1 = D1(S, K, T, sigma, r, q);
+      var d2 = D2(T, sigma, d1);
+      var vega = Vega(S, K, T, sigma, r, q);
+      
       return vega * d1 * d2 / sigma;
     }
   }

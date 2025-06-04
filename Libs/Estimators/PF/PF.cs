@@ -20,9 +20,9 @@ namespace Estimator.Estimators
       var gains = Items.Where(o => o.Value > 0).Sum(o => o.Value);
       var losses = Items.Where(o => o.Value < 0).Sum(o => o.Value);
 
-      if (losses == 0)
+      if (losses is 0)
       {
-        gains = 1.0;
+        return gains;
       }
 
       return Math.Abs(gains / losses);
