@@ -1,90 +1,106 @@
-﻿using System;
+﻿using MathNet.Numerics.LinearAlgebra;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Estimator.Services
 {
-  /// <summary>
-  /// Multivariate Kalman Filter for Dynamic Regression and Adaptive Smoothing.
-  /// 
-  /// SCENARIOS:
-  /// 1. Basket Trading (N Assets): y = b1*x1 + b2*x2 ... + bN*xN
-  /// 2. Adaptive Moving Average: Set dimension = 1. Pass x = [1.0] and y = Price. 
-  /// The Beta[0] will become the noise-filtered 'True Price'.
-  /// </summary>
   public class KalmanRegression
   {
-    protected int dimension;
-    protected double[] betas;
-    protected double[,] covariance;
+    protected Vector<double> betas;
+    protected Matrix<double> covariance;
 
-    protected double processNoise; // Q: Higher = faster adaptation, more jitter
-    protected double obsNoise;     // R: Higher = slower adaptation, smoother line
+    protected double processNoise; // Q
+    protected double observationNoise; // R
 
-    public virtual IReadOnlyList<double> Betas => betas;
+    // Safety constants
+    private const double MinVariance = 1e-8;
+    private const double Epsilon = 1e-12;
+
+    public virtual IReadOnlyList<double> Betas => betas.ToArray();
+
+    public virtual IReadOnlyList<double> BetaVariances => covariance.Diagonal().ToArray();
+
+    public virtual double Predict(double[] xInput) => Vector<double>.Build.DenseOfArray(xInput).DotProduct(betas);
+
+    public virtual double Spread(double y, double[] x) => y - Predict(x);
 
     public KalmanRegression(int dimension, double processNoise = 1e-5, double obsNoise = 1e-3)
     {
-      this.dimension = dimension;
       this.processNoise = processNoise;
-      this.obsNoise = obsNoise;
+      this.observationNoise = obsNoise;
 
-      betas = new double[this.dimension];
-      covariance = new double[this.dimension, this.dimension];
+      // Initialize State Vector (Betas)
+      betas = Vector<double>.Build.Dense(dimension);
 
-      // Initialize uncertainty
-
-      Enumerable.Range(0, this.dimension)
-        .ToList()
-        .ForEach(i => covariance[i, i] = 1.0);
+      // Initialize Covariance Matrix (P) with Identity
+      covariance = Matrix<double>.Build.DenseIdentity(dimension);
     }
 
-    /// <summary>
-    /// Update model with one observation.
-    /// </summary>
-    /// <param name="y">Target asset price (e.g. ES)</param>
-    /// <param name="x">Independent assets (e.g. NQ, RTY, or [1.0] for Moving Average)</param>
-    /// <returns>The residual (Spread or Prediction Error)</returns>
-    public virtual double Update(double y, double[] x)
+    public virtual double Update(double y, double[] xInput)
     {
-      // 1. Predict (Time Update)
-      Enumerable.Range(0, dimension)
-        .ToList()
-        .ForEach(i => covariance[i, i] += processNoise);
+      // Convert input array to Math.NET Vector
+      var x = Vector<double>.Build.DenseOfArray(xInput);
 
-      // 2. Innovation (Measurement Residual)
-      var yHat = betas.Zip(x, (b, o) => b * o).Sum();
+      // 1. Predict (Time Update)
+      // P = P + Q (Add process noise to diagonal)
+      for (var i = 0; i < betas.Count; i++)
+      {
+        covariance[i, i] += processNoise;
+      }
+
+      // 2. Innovation
+      // yHat = x * beta (Dot product)
+      var yHat = x.DotProduct(betas);
       var error = y - yHat;
 
       // 3. Innovation Covariance (S)
-      var s = obsNoise;
+      // Calculate P * x (Vector)
+      var px = covariance * x;
 
-      // Calculate P * x 
-      var px = Enumerable.Range(0, dimension)
-        .Select(i => Enumerable
-          .Range(0, dimension)
-          .Sum(j => covariance[i, j] * x[j]))
-        .ToArray();
-
-      // Calculate s = x * Px + R 
-      s += Enumerable
-        .Range(0, dimension)
-        .Sum(i => x[i] * px[i]);
+      // Calculate S = x^T * Px + R
+      // Dot product of x and Px gives the scalar quadratic form
+      var s = x.DotProduct(px) + observationNoise;
 
       // 4. Kalman Gain (K)
-      var gain = Math.Abs(s) > double.Epsilon ? 
-        px.Select(pxi => pxi / s).ToArray() : 
-        new double[dimension];
+      if (s < Epsilon) s = Epsilon; // Safety clamp
+
+      // K = Px / S
+      var gain = px / s;
 
       // 5. Update State (Beta)
-      betas = betas.Zip(gain, (beta, o) => beta + o * error).ToArray();
+      // beta = beta + K * error
+      betas += gain * error;
 
-      // 6. Update Covariance (P = P - K * Px^T)
-      for (var i = 0; i < dimension; i++)
+      // 6. Joseph Form Covariance Update (Numerical Stability)
+      // P = (I - KH) P (I - KH)^T + KRK^T
+
+      // Generate I - KH
+      // KH is an outer product: k (column) * h (row)
+      var identity = Matrix<double>.Build.DenseIdentity(betas.Count);
+      var kh = gain.OuterProduct(x);
+      var iKh = identity - kh;
+
+      // Term 1: (I - KH) * P * (I - KH)^T
+      var term1 = iKh * covariance * iKh.Transpose();
+
+      // Term 2: K * R * K^T
+      // Since R is a scalar (observationNoise), this is R * (K * K^T)
+      var term2 = gain.OuterProduct(gain) * observationNoise;
+
+      // Final P update
+      covariance = term1 + term2;
+
+      // 7. Housekeeping: Force strict symmetry to clear tiny rounding drifts
+      for (var i = 0; i < betas.Count; i++)
       {
-        for (var ii = 0; ii < dimension; ii++)
+        if (covariance[i, i] < MinVariance) covariance[i, i] = MinVariance;
+
+        for (var ii = i + 1; ii < betas.Count; ii++)
         {
-          covariance[i, ii] -= gain[i] * px[ii];
+          var avg = (covariance[i, ii] + covariance[ii, i]) * 0.5;
+
+          covariance[i, ii] = avg;
+          covariance[ii, i] = avg;
         }
       }
 
