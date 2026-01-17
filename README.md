@@ -29,4 +29,5 @@ Install-Package Estimator
 # Services
 
 * Cointegration - Johansen test
+* Kalman - Filtering and hedge ratios for stationary basket trading
 * Option - Black-Scholes model
