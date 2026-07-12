@@ -6,24 +6,33 @@ namespace Estimator.Services
 {
   public class KalmanRegression
   {
+    protected double score;
     protected Vector<double> betas;
     protected Matrix<double> covariance;
 
     protected double processNoise; // Q
     protected double observationNoise; // R
 
-    // Safety constants
-    private const double MinVariance = 1e-8;
+    // Constants
     private const double Epsilon = 1e-12;
+    private const double MinVariance = 1e-8;
 
-    public virtual IReadOnlyList<double> Betas => betas.ToArray();
+    /// <summary>
+    /// Z-Score
+    /// </summary>
+    public virtual double Score => score;
 
-    public virtual IReadOnlyList<double> BetaVariances => covariance.Diagonal().ToArray();
+    /// <summary>
+    /// Weights
+    /// </summary>
+    public virtual IList<double> Betas => betas.ToArray();
 
-    public virtual double Predict(double[] xInput) => Vector<double>.Build.DenseOfArray(xInput).DotProduct(betas);
-
-    public virtual double Spread(double y, double[] x) => y - Predict(x);
-
+    /// <summary>
+    /// Range 1e-2 to 1e-7 for noise
+    /// </summary>
+    /// <param name="dimension"></param>
+    /// <param name="processNoise">Larger values adapt betas faster.</param>
+    /// <param name="obsNoise">Smaller values increase sensitivity.</param>
     public KalmanRegression(int dimension, double processNoise = 1e-5, double obsNoise = 1e-3)
     {
       this.processNoise = processNoise;
@@ -36,24 +45,44 @@ namespace Estimator.Services
       covariance = Matrix<double>.Build.DenseIdentity(dimension);
     }
 
-    public virtual double Update(double y, double[] xInput)
+    /// <summary>
+    /// Predict regression with current betas and new observations
+    /// </summary>
+    /// <param name="observations"></param>
+    /// <returns></returns>
+    public virtual double Predict(params double[] observations) => Vector<double>
+      .Build
+      .DenseOfArray(observations)
+      .DotProduct(betas);
+
+    /// <summary>
+    /// Update prediction
+    /// </summary>
+    /// <param name="y"></param>
+    /// <param name="observations"></param>
+    /// <returns></returns>
+    public virtual double Update(double y, double[] observations)
     {
       // Convert input array to Math.NET Vector
-      var x = Vector<double>.Build.DenseOfArray(xInput);
+      var x = Vector<double>.Build.DenseOfArray(observations);
 
       // 1. Predict (Time Update)
+      // Force covariance update to trigger betas recalculation
       // P = P + Q (Add process noise to diagonal)
       for (var i = 0; i < betas.Count; i++)
       {
         covariance[i, i] += processNoise;
       }
 
-      // 2. Innovation
+      // 2. Innovation 
+      // yHat - predicted fair value
+      // error - spread between actual observation and prediction
       // yHat = x * beta (Dot product)
       var yHat = x.DotProduct(betas);
       var error = y - yHat;
 
       // 3. Innovation Covariance (S)
+      // Calculate which asset has highest covariance and brings most uncertainty
       // Calculate P * x (Vector)
       var px = covariance * x;
 
@@ -62,14 +91,14 @@ namespace Estimator.Services
       var s = x.DotProduct(px) + observationNoise;
 
       // 4. Kalman Gain (K)
-      if (s < Epsilon) s = Epsilon; // Safety clamp
-
+      // gain - smaller value means confidence and less changes to betas
       // K = Px / S
-      var gain = px / s;
+      var gain = px / Math.Max(s, Epsilon);
 
-      // 5. Update State (Beta)
+      // 5. Update State - betas and z-score
       // beta = beta + K * error
       betas += gain * error;
+      score = error / Math.Sqrt(s);
 
       // 6. Joseph Form Covariance Update (Numerical Stability)
       // P = (I - KH) P (I - KH)^T + KRK^T
@@ -93,7 +122,7 @@ namespace Estimator.Services
       // 7. Housekeeping: Force strict symmetry to clear tiny rounding drifts
       for (var i = 0; i < betas.Count; i++)
       {
-        if (covariance[i, i] < MinVariance) covariance[i, i] = MinVariance;
+        covariance[i, i] = Math.Max(covariance[i, i], MinVariance);
 
         for (var ii = i + 1; ii < betas.Count; ii++)
         {

@@ -36,7 +36,7 @@ namespace Tests
       foreach (var asset in assets)
       {
         var error = Regression.Update(Math.Log(asset[0]), [Math.Log(asset[1]), Math.Log(asset[2])]);
-        var spread = Regression.Spread(Math.Log(asset[0]), [Math.Log(asset[1]), Math.Log(asset[2])]);
+        var spread = Regression.Predict(Math.Log(asset[1]), Math.Log(asset[2]));
 
         Console.WriteLine(spread);
       }
