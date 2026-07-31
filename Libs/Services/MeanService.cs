@@ -17,7 +17,7 @@ namespace Estimator.Services
 
     private readonly int assets;
     private readonly bool interception;
-    private readonly KalmanRegression regression;
+    private readonly KalmanService regression;
 
     // Exponential forgetting factors for non-stationary market adaptation
     private readonly double weight;           // Weights historical covariance
@@ -51,7 +51,7 @@ namespace Estimator.Services
       this.step = step;
 
       var dimension = interception ? assets + 1 : assets;
-      regression = new KalmanRegression(dimension, processNoise, observationNoise);
+      regression = new KalmanService(dimension, processNoise, observationNoise);
 
       // Safe defaults before statistical significance is reached
       Mu = 0.0;
@@ -186,7 +186,5 @@ namespace Estimator.Services
     public double SpreadStdDev => Math.Sqrt((Sigma * Sigma) / (2.0 * Math.Max(Theta, double.Epsilon)));
 
     public double GetSpeed() => Math.Log(2.0) / Math.Max(Theta, double.Epsilon);
-
-    public double CurrentKalmanScore => regression.Score;
   }
 }

@@ -132,9 +132,8 @@ namespace Tests
         {217.43, 106.97, 177.12}
       });
 
-      var response = JohansenCore.Run(data, 1, JohansenModel.Model0);
-      var rank = JohansenModelSelector.SelectRank(response, SignificanceLevel.x95, data.ColumnCount);
-      var beta = response.EigenVectors.SubMatrix(0, data.ColumnCount, 0, rank);
+      var response = JohansenCore.Run(data, 1, JohansenModel.M0);
+      var beta = response.EigenVectors.SubMatrix(0, data.ColumnCount, 0, 0);
       var ratio = beta.Column(0);
       var standardRatio = ratio / ratio[0];
       var spread = data * standardRatio;

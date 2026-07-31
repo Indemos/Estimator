@@ -1,26 +1,22 @@
-﻿using MathNet.Numerics.LinearAlgebra;
+﻿using Estimator.Models;
+using MathNet.Numerics.LinearAlgebra;
 using System;
 using System.Collections.Generic;
 
 namespace Estimator.Services
 {
-  public class KalmanRegression
+  public class KalmanService
   {
-    protected double score;
+    protected const double Epsilon = 1e-12;
+    protected const double MinVariance = 1e-8;
+
     protected Vector<double> betas;
     protected Matrix<double> covariance;
-
-    protected double processNoise; // Q
-    protected double observationNoise; // R
-
-    // Constants
-    private const double Epsilon = 1e-12;
-    private const double MinVariance = 1e-8;
-
-    /// <summary>
-    /// Z-Score
-    /// </summary>
-    public virtual double Score => score;
+    protected double processNoise;
+    protected double observationNoise;
+    protected double innovationScore;
+    protected double maxCovariance;
+    protected bool setup;
 
     /// <summary>
     /// Weights
@@ -31,106 +27,105 @@ namespace Estimator.Services
     /// Range 1e-2 to 1e-7 for noise
     /// </summary>
     /// <param name="dimension"></param>
-    /// <param name="processNoise">Larger values adapt betas faster.</param>
+    /// <param name="processNoise">Larger values adapt betas faster and ignore history.</param>
     /// <param name="obsNoise">Smaller values increase sensitivity.</param>
-    public KalmanRegression(int dimension, double processNoise = 1e-5, double obsNoise = 1e-3)
+    public KalmanService(int dimension, double processNoise = 1e-5, double obsNoise = 1e-3, double maxCovariance = 1e2)
     {
       this.processNoise = processNoise;
       this.observationNoise = obsNoise;
+      this.maxCovariance = maxCovariance;
 
-      // Initialize State Vector (Betas)
-      betas = Vector<double>.Build.Dense(dimension);
-
-      // Initialize Covariance Matrix (P) with Identity
+      betas = Vector<double>.Build.Dense(dimension, 1);
       covariance = Matrix<double>.Build.DenseIdentity(dimension);
     }
 
-    /// <summary>
-    /// Predict regression with current betas and new observations
-    /// </summary>
-    /// <param name="observations"></param>
-    /// <returns></returns>
     public virtual double Predict(params double[] observations) => Vector<double>
       .Build
       .DenseOfArray(observations)
       .DotProduct(betas);
 
-    /// <summary>
-    /// Update prediction
-    /// </summary>
-    /// <param name="y"></param>
-    /// <param name="observations"></param>
-    /// <returns></returns>
-    public virtual double Update(double y, double[] observations)
+    public virtual double Update(double y, params double[] observations)
     {
-      // Convert input array to Math.NET Vector
       var x = Vector<double>.Build.DenseOfArray(observations);
 
-      // 1. Predict (Time Update)
-      // Force covariance update to trigger betas recalculation
-      // P = P + Q (Add process noise to diagonal)
+      // 1. Time update - skip Q when no observation to avoid unbounded growth
       for (var i = 0; i < betas.Count; i++)
       {
         covariance[i, i] += processNoise;
       }
 
-      // 2. Innovation 
-      // yHat - predicted fair value
-      // error - spread between actual observation and prediction
-      // yHat = x * beta (Dot product)
+      // 2. Innovation
       var yHat = x.DotProduct(betas);
       var error = y - yHat;
 
-      // 3. Innovation Covariance (S)
-      // Calculate which asset has highest covariance and brings most uncertainty
-      // Calculate P * x (Vector)
+      // 3. Innovation covariance
       var px = covariance * x;
-
-      // Calculate S = x^T * Px + R
-      // Dot product of x and Px gives the scalar quadratic form
       var s = x.DotProduct(px) + observationNoise;
 
-      // 4. Kalman Gain (K)
-      // gain - smaller value means confidence and less changes to betas
-      // K = Px / S
-      var gain = px / Math.Max(s, Epsilon);
+      // Safe S for both gain and score
+      var sSafe = Math.Max(s, Epsilon);
+      var gain = px / sSafe;
 
-      // 5. Update State - betas and z-score
-      // beta = beta + K * error
+      // 4. State update
       betas += gain * error;
-      score = error / Math.Sqrt(s);
+      innovationScore = error / Math.Sqrt(sSafe);
 
-      // 6. Joseph Form Covariance Update (Numerical Stability)
-      // P = (I - KH) P (I - KH)^T + KRK^T
-
-      // Generate I - KH
-      // KH is an outer product: k (column) * h (row)
+      // 5. Joseph form - preserves PSD in exact math
       var identity = Matrix<double>.Build.DenseIdentity(betas.Count);
       var kh = gain.OuterProduct(x);
       var iKh = identity - kh;
-
-      // Term 1: (I - KH) * P * (I - KH)^T
       var term1 = iKh * covariance * iKh.Transpose();
-
-      // Term 2: K * R * K^T
-      // Since R is a scalar (observationNoise), this is R * (K * K^T)
       var term2 = gain.OuterProduct(gain) * observationNoise;
 
-      // Final P update
       covariance = term1 + term2;
 
-      // 7. Housekeeping: Force strict symmetry to clear tiny rounding drifts
+      // 6. Housekeeping - PSD preserving
+      // 6a. Enforce symmetry to clean FP drift
       for (var i = 0; i < betas.Count; i++)
       {
-        covariance[i, i] = Math.Max(covariance[i, i], MinVariance);
-
         for (var ii = i + 1; ii < betas.Count; ii++)
         {
           var avg = (covariance[i, ii] + covariance[ii, i]) * 0.5;
-
           covariance[i, ii] = avg;
           covariance[ii, i] = avg;
         }
+      }
+
+      // 6b. Trace cap - scaling preserves PSD: c*P stays PSD if P is PSD
+      var trace = covariance.Trace();
+      var maxTrace = maxCovariance * betas.Count;
+
+      if (trace > maxTrace && trace > 0)
+      {
+        covariance *= maxTrace / trace;
+      }
+
+      // 6c. Per-dim cap preserving correlation - D*P*D preserves PSD
+      // Instead of: P[i,i] = min(P[i,i], max) which breaks PSD like [1000 990; 990 1000] -> [100 990; 990 100]
+      for (var i = 0; i < betas.Count; i++)
+      {
+        if (covariance[i, i] > maxCovariance)
+        {
+          var scale = Math.Sqrt(maxCovariance / covariance[i, i]);
+
+          for (var ii = 0; ii < betas.Count; ii++)
+          {
+            covariance[i, ii] *= scale;
+            covariance[ii, i] *= scale;
+          }
+
+          // Floor to avoid singularity
+          if (covariance[i, i] < MinVariance)
+          {
+            covariance[i, i] = MinVariance;
+          }
+        }
+      }
+
+      if (setup is false)
+      {
+        setup = true;
+        return 0;
       }
 
       return error;

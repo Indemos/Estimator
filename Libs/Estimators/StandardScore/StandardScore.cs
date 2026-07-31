@@ -17,44 +17,36 @@ namespace Estimator.Estimators
     /// </summary>
     public virtual double Calculate()
     {
-      var gains = 0.0;
-      var losses = 0.0;
-      var seriesGains = 0.0;
-      var seriesLosses = 0.0;
+      if (Items?.Count < 2) return 0;
 
-      for (var i = 0; i < Items.Count; i++)
+      var runs = 0;
+      var wins = 0;
+      var losses = 0;
+
+      int? curSign = null;
+
+      foreach (var item in Items)
       {
-        var current = Items.ElementAtOrDefault(i).Value;
-        var previous = Items.ElementAtOrDefault(i - 1).Value;
+        var sign = item.Value > 0 ? 1 : item.Value < 0 ? -1 : 0;
 
-        switch (true)
-        {
-          case true when current > 0 && previous <= 0: gains++; seriesGains++; break;
-          case true when current < 0 && previous >= 0: losses++; seriesLosses++; break;
-          case true when current > 0: gains++; break;
-          case true when current < 0: losses++; break;
-        }
+        if (sign == 0) continue;
+        if (sign > 0) wins++; else losses++;
+        if (curSign is null || sign != curSign) runs++;
+
+        curSign = sign;
       }
 
-      var sum = gains + losses;
-      var product = 2.0 * gains * losses;
-      var seriesCount = seriesGains + seriesLosses;
-      var mean = product / sum + 1.0;
-      var denominator = (sum - 1.0) * sum * sum;
+      var N = wins + losses;
 
-      if (denominator is 0)
-      {
-        return 0;
-      }
+      if (N <= 1 || wins is 0 || losses is 0) return 0;
 
-      var deviation = Math.Sqrt(product * (product - sum) / denominator);
+      var P = 2.0 * wins * losses;
+      var numerator = N * (runs - 0.5) - P;
+      var denominator = P * (P - N) / (N - 1.0);
+      
+      if (denominator <= 0) return 0;
 
-      if (deviation is 0)
-      {
-        return 0;
-      }
-
-      return (seriesCount - mean - 0.5) / deviation;
+      return numerator / Math.Sqrt(denominator);
     }
   }
 }
