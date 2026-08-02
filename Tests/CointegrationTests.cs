@@ -133,20 +133,6 @@ namespace Tests
       });
 
       var response = JohansenCore.Run(data, 1, JohansenModel.M0);
-      var beta = response.EigenVectors.SubMatrix(0, data.ColumnCount, 0, 0);
-      var ratio = beta.Column(0);
-      var standardRatio = ratio / ratio[0];
-      var spread = data * standardRatio;
-      var mean = spread.Average();
-      var std = Math.Sqrt(spread.Average(x => (x - mean) * (x - mean)));
-
-      Console.WriteLine("Response");
-      Console.WriteLine(JsonSerializer.Serialize(response));
-
-      Console.WriteLine("Beta");
-      Console.WriteLine(JsonSerializer.Serialize(beta));
-
-      Console.ReadLine();
 
       //Assert.Equal(2, result.Rank);
     }
