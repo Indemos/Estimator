@@ -28,6 +28,8 @@ Install-Package Estimator
 
 # Services
 
+* Ratio - beta hedge ratio for baskets
+* Score - z-score for baskets
 * Cointegration - Johansen test
 * Kalman - Filtering and hedge ratios for stationary basket trading
 * Option - Black-Scholes model
