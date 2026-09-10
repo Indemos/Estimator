@@ -132,7 +132,7 @@ namespace Tests
         {217.43, 106.97, 177.12}
       });
 
-      var response = JohansenCore.Run(data, 1, JohansenModel.M0);
+      var response = new JohansenCore().Run(data, 1, JohansenModel.M0);
 
       //Assert.Equal(2, result.Rank);
     }

@@ -1,50 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
 
-namespace Estimator.Services
+public class ScoreService
 {
-  public class ScoreService
+  protected double alpha; // e.g. 2.0 / (N + 1) for "N-period" convention
+  protected double mean;
+  protected double variance;
+  protected bool setup;
+
+  public ScoreService(double decay)
   {
-    protected const double Epsilon = 1e-12;
+    alpha = 1 - Math.Pow(0.5, 1.0 / decay);
+  }
 
-    private readonly Queue<double> queue;
-    private readonly int capacity;
-    private double meanSquare;
-    private double mean;
-    private int count;
+  public double Deviation => Math.Sqrt(Math.Max(0.0, variance));
 
-    public ScoreService(int capacity)
+  public double Score(double value)
+  {
+    var deviation = Deviation;
+    return deviation > 1e-12 ? (value - mean) / deviation : 0.0;
+  }
+
+  public void Update(double value)
+  {
+    if (setup is false)
     {
-      this.capacity = capacity;
-      this.queue = new Queue<double>(capacity);
+      mean = value;
+      variance = 0; 
+      setup = true; 
+      return;
     }
 
-    public double Deviation => Math.Sqrt(count > 1 ? Math.Max(0.0, meanSquare) / (count - 1) : 0.0);
+    var delta = value - mean;
+    var increment = alpha * delta;
 
-    public double Score(double value)
-    {
-      var deviation = Deviation;
-      return deviation > Epsilon ? (value - mean) / deviation : 0.0;
-    }
-
-    public void Update(double value)
-    {
-      if (count == capacity)
-      {
-        var previous = queue.Dequeue();
-        var previousMean = mean;
-
-        mean = (mean * count - previous) / (count - 1);
-        meanSquare -= (previous - previousMean) * (previous - mean);
-        count--;
-      }
-
-      var delta = value - mean;
-
-      count++;
-      mean += delta / count;
-      meanSquare += delta * (value - mean);
-      queue.Enqueue(value);
-    }
+    mean += increment;
+    variance = (1 - alpha) * (variance + delta * increment);
   }
 }

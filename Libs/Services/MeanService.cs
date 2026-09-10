@@ -11,29 +11,29 @@ namespace Estimator.Services
   public class MeanService
   {
     // Continuous-time OU Parameters
-    public double Mu { get; private set; }    // Equilibrium mean (intercept)
-    public double Theta { get; private set; } // Speed of mean reversion
-    public double Sigma { get; private set; } // Continuous diffusion volatility
+    public virtual double Mu { get; protected set; }    // Equilibrium mean (intercept)
+    public virtual double Theta { get; protected set; } // Speed of mean reversion
+    public virtual double Sigma { get; protected set; } // Continuous diffusion volatility
 
-    private readonly int assets;
-    private readonly bool interception;
-    private readonly KalmanService regression;
+    protected readonly int assets;
+    protected readonly bool interception;
+    protected readonly KalmanService regression;
 
     // Exponential forgetting factors for non-stationary market adaptation
-    private readonly double weight;           // Weights historical covariance
-    private readonly double sigmaWeight;      // Weights historical residuals
+    protected readonly double weight;           // Weights historical covariance
+    protected readonly double sigmaWeight;      // Weights historical residuals
 
-    private double currentSpread = double.NaN;
-    private double step = 1.0;                // Time step increment (e.g., 1/390 for minute bars)
+    protected double currentSpread = double.NaN;
+    protected double step = 1.0;                // Time step increment (e.g., 1/390 for minute bars)
 
     // Online AR(1) statistics variables (Welford's algorithm states)
-    private double meanX = 0.0;
-    private double meanY = 0.0;
-    private double sumXX = 0.0;
-    private double sumXY = 0.0;
-    private double memorySize = 0.0;
-    private double emaVariance = 0.0;
-    private double barrier = 1e-8;
+    protected double meanX = 0.0;
+    protected double meanY = 0.0;
+    protected double sumXX = 0.0;
+    protected double sumXY = 0.0;
+    protected double memorySize = 0.0;
+    protected double emaVariance = 0.0;
+    protected double barrier = 1e-8;
 
     public MeanService(
       int assets,
@@ -60,7 +60,7 @@ namespace Estimator.Services
       emaVariance = 0.0001;
     }
 
-    public double Update(double priceTarget, double[] prices)
+    public virtual double Update(double priceTarget, double[] prices)
     {
       // Step 1: Construct the observation array for the Kalman Filter
       var observations = new List<double>();
@@ -85,7 +85,7 @@ namespace Estimator.Services
       return spread;
     }
 
-    private void UpdateOnlineStatistics(double spread)
+    protected virtual void UpdateOnlineStatistics(double spread)
     {
       // Initialization condition: Need at least one prior spread to form an AR(1) pair
       if (double.IsNaN(currentSpread))
@@ -139,7 +139,7 @@ namespace Estimator.Services
       currentSpread = spread;
     }
 
-    public void UpdateOUParameters()
+    public virtual void UpdateOUParameters()
     {
       // Gatekeeper: Require a minimum effective sample size to prevent erratic early parameters
       if (sumXX < barrier)
@@ -183,8 +183,8 @@ namespace Estimator.Services
     /// This is the structural width of the trade envelope, dictated by the balance 
     /// between the diffusion noise (Sigma) and the reversion pull (Theta).
     /// </summary>
-    public double SpreadStdDev => Math.Sqrt((Sigma * Sigma) / (2.0 * Math.Max(Theta, double.Epsilon)));
+    public virtual double SpreadStdDev => Math.Sqrt((Sigma * Sigma) / (2.0 * Math.Max(Theta, double.Epsilon)));
 
-    public double GetSpeed() => Math.Log(2.0) / Math.Max(Theta, double.Epsilon);
+    public virtual double GetSpeed() => Math.Log(2.0) / Math.Max(Theta, double.Epsilon);
   }
 }

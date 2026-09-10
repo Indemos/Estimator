@@ -23,7 +23,7 @@ namespace Estimator.Services
     /// <param name="r"></param>
     /// <param name="q"></param>
     /// <returns></returns>
-    private static double D1(double S, double K, double T, double sigma, double r, double q)
+    protected static double D1(double S, double K, double T, double sigma, double r, double q)
     {
       return (Math.Log(S / K) + (r - q + (sigma * sigma) / 2.0) * T) / (sigma * Math.Sqrt(T));
     }
@@ -35,7 +35,7 @@ namespace Estimator.Services
     /// <param name="sigma"></param>
     /// <param name="d1"></param>
     /// <returns></returns>
-    private static double D2(double T, double sigma, double d1)
+    protected static double D2(double T, double sigma, double d1)
     {
       return d1 - sigma * Math.Sqrt(T);
     }

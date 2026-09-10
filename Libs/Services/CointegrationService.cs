@@ -13,21 +13,9 @@ namespace Estimator.Services
     M4 = 4  // constant + trend in VAR
   }
 
-  public sealed class JohansenResponse
+  public class JohansenCore
   {
-    public double[] EigenValues;
-    public double[] TraceStatistics;
-
-    public Matrix<double> R0;
-    public Matrix<double> R1;
-    public Matrix<double> EigenVectors;
-
-    public JohansenModel Model;
-  }
-
-  public static class JohansenCore
-  {
-    public static JohansenResponse Run(Matrix<double> series, int steps, JohansenModel model)
+    public virtual JohansenResponse Run(Matrix<double> series, int steps, JohansenModel model)
     {
       var rows = series.RowCount;
       var columns = series.ColumnCount;
@@ -119,7 +107,7 @@ namespace Estimator.Services
     /// </summary>
     /// <param name="y"></param>
     /// <param name="x"></param>
-    private static Matrix<double> Regression(Matrix<double> y, Matrix<double> x)
+    protected virtual Matrix<double> Regression(Matrix<double> y, Matrix<double> x)
     {
       if (x is null || x.ColumnCount is 0)
       {
@@ -138,7 +126,7 @@ namespace Estimator.Services
     /// Computes A^(-1/2) for a symmetric matrix A using EVD.
     /// Handles near-singular matrices by clipping small eigenvalues.
     /// </summary>
-    private static Matrix<double> Inversion(Matrix<double> A)
+    protected virtual Matrix<double> Inversion(Matrix<double> A)
     {
       var evd = A.Evd(Symmetricity.Symmetric);
       var V = evd.EigenVectors;
@@ -156,7 +144,7 @@ namespace Estimator.Services
     /// <param name="z"></param>
     /// <param name="model"></param>
     /// <param name="count"></param>
-    private static (Matrix<double> Y1, Matrix<double> Z) Terms(Matrix<double> y1, Matrix<double> z, JohansenModel model, int count)
+    protected virtual (Matrix<double> Y1, Matrix<double> Z) Terms(Matrix<double> y1, Matrix<double> z, JohansenModel model, int count)
     {
       var ones = Matrix<double>.Build.Dense(count, 1, 1.0);
       var trend = Matrix<double>.Build.DenseOfColumnArrays(Enumerable.Range(1, count)
@@ -176,5 +164,17 @@ namespace Estimator.Services
 
       return (y1, z);
     }
+  }
+
+  public class JohansenResponse
+  {
+    public double[] EigenValues;
+    public double[] TraceStatistics;
+
+    public Matrix<double> R0;
+    public Matrix<double> R1;
+    public Matrix<double> EigenVectors;
+
+    public JohansenModel Model;
   }
 }
