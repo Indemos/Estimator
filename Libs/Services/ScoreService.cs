@@ -2,9 +2,9 @@
 
 public class ScoreService
 {
+  protected bool setup;
   protected double alpha;
   protected double mean, variance;
-  protected bool setup;
 
   public ScoreService(double period)
   {
@@ -23,6 +23,12 @@ public class ScoreService
     var range = value - mean;
     var deviation = variance > 0 ? Math.Sqrt(variance) : 0;
     var score = deviation > 1e-12 ? range / deviation : 0;
+
+    // EWMA mean: mean[t] = mean[t - 1] + alpha * (value - mean[t - 1]) = (1 - alpha) * mean[t - 1] + alpha * value
+    // EWMA variance: Welford, always PSD - positive semi-definite
+    // increment = alpha*range, so range*increment = alpha*range^2
+    // var[t] = (1 - alpha) * (var[t - 1] + alpha * range^2)
+    // (1 - alpha) decays old moments, alpha*range^2 blends new info
 
     mean += alpha * range;
     variance = (1 - alpha) * (variance + alpha * range * range);

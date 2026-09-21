@@ -1,118 +1,139 @@
-﻿using System;
-using System.Linq;
-using MathNet.Numerics.LinearAlgebra;
+﻿using MathNet.Numerics.LinearAlgebra;
+using System;
 
-public class SpreadService
+namespace Estimator.Services
 {
-  protected const double Epsilon = 1e-10;
-  protected const double MaxConditionNumber = 1e10;
-
-  protected readonly double alpha;
-  protected readonly double ridge;
-
-  protected int count;
-  protected int dimension;
-  protected bool setup;
-  protected bool advance = true;
-
-  protected double meanY;
-  protected Vector<double> meanX;
-  protected Vector<double> m2XY;
-  protected Matrix<double> m2XX;
-  protected double[] cache = Array.Empty<double>();
-
-  public bool Corruption { get; protected set; }
-
-  public SpreadService(double period, double ridge = 0)
+  public class SpreadService
   {
-    alpha = 1 - Math.Pow(0.5, 1.0 / period);
-    this.ridge = ridge;
-  }
+    protected double decay;
+    protected double ridge;
 
-  // no-lookahead: spread from t-1, then -> t
-  public virtual double? Update(double y, params double[] x)
-  {
-    var spread = ComputeSpread(y, x);
-    Observe(y, x);
-    return spread;
-  }
+    protected int dimension;
 
-  public virtual double[] Betas()
-  {
-    if (dimension == 0) return Array.Empty<double>();
-    if (advance) { cache = SolveBetas(); advance = false; }
-    return (double[])cache.Clone();
-  }
+    // EWMA means.
+    protected double meanY;
+    protected Vector<double> meanX;
 
-  public virtual double? ComputeSpread(double y, params double[] x)
-  {
-    if (dimension == 0) return null;
-    var xv = Vector<double>.Build.DenseOfArray(x);
-    return y - meanY - Vector<double>.Build.DenseOfArray(Betas()).DotProduct(xv - meanX);
-  }
+    // EWMA centered second moments.
+    // m2XX = E[(X - meanX)(X - meanX)^T]
+    // m2XY = E[(X - meanX)(Y - meanY)]
+    protected Matrix<double> m2XX;
+    protected Vector<double> m2XY;
 
-  protected virtual void Observe(double y, params double[] x)
-  {
-    if (dimension is 0) dimension = x.Length;
+    protected double[] cache;
 
-    var xv = Vector<double>.Build.DenseOfArray(x);
-
-    if (setup is false)
+    public SpreadService(double period, double ridge = 0)
     {
-      meanX = xv; meanY = y;
-      m2XX = Matrix<double>.Build.Dense(dimension, dimension);
-      m2XY = Vector<double>.Build.Dense(dimension);
-      setup = true;
+      this.decay = 1.0 - Math.Pow(0.5, 1.0 / period);
+      this.ridge = ridge;
     }
-    else
+
+    /// <summary>
+    /// Updates the regression and returns the spread/residual for the
+    /// current observation using parameters from before this observation.
+    /// </summary>
+    public virtual double? Update(double y, params double[] x)
     {
+      var xv = Vector<double>.Build.DenseOfArray(x);
+
+      if (dimension is 0)
+      {
+        dimension = x.Length;
+
+        meanY = y;
+        meanX = xv;
+
+        m2XX = Matrix<double>.Build.Dense(dimension, dimension);
+        m2XY = Vector<double>.Build.Dense(dimension);
+      }
+
+      var spread = ComputeSpread(y, x);
+
+      Observe(y, x);
+
+      return spread;
+    }
+
+    /// <summary>
+    /// Incorporates one observation into the EWMA statistics.
+    /// Mean: mean = (1-alpha) * oldMean + alpha * observation
+    /// Covariance: C = (1-alpha) * oldC + alpha * centeredOuterProduct
+    /// </summary>
+    protected virtual void Observe(double y, params double[] x)
+    {
+      var xv = Vector<double>.Build.DenseOfArray(x);
       var dx = xv - meanX;
       var dy = y - meanY;
 
-      meanX += dx * alpha;
-      meanY += dy * alpha;
-      m2XX = (m2XX + dx.OuterProduct(dx * alpha)) * (1 - alpha);
-      m2XY = (m2XY + dx * (dy * alpha)) * (1 - alpha);
+      // EWMA means.
+      meanX += dx * decay;
+      meanY += dy * decay;
+
+      // Standard EWMA covariance updates.
+      m2XX = m2XX * (1.0 - decay) + dx.OuterProduct(dx) * decay;
+      m2XY = m2XY * (1.0 - decay) + dx * dy * decay;
     }
 
-    count++; advance = true;
-  }
-
-  protected virtual double[] SolveBetas()
-  {
-    var lambda = Math.Max(ridge * (m2XX.Trace() / dimension), Epsilon);
-    var A = m2XX + Matrix<double>.Build.DenseIdentity(dimension) * lambda;
-    
-    A = (A + A.Transpose()) * 0.5;
-
-    try
+    /// <summary>
+    /// Computes the centered regression residual using the current regression parameters.
+    /// spread = (y - meanY) - beta' * (x - meanX)
+    /// </summary>
+    public virtual double? ComputeSpread(double y, params double[] x)
     {
-      var chol = A.Cholesky();
-      var diag = chol.Factor.Diagonal();
-      var cond = diag.Maximum() / diag.Minimum();
-      
-      cond *= cond;
-      
-      if (diag.Minimum() <= 0 || double.IsNaN(cond) || cond > MaxConditionNumber)
+      var beta = Betas(true);
+
+      if (beta is null)
       {
-        Corruption = true; 
-        return new double[dimension];
+        return null;
       }
 
-      var sol = chol.Solve(m2XY);
+      var spread = y - meanY;
 
-      if (sol.Any(v => double.IsNaN(v) || double.IsInfinity(v)))
+      for (var i = 0; i < dimension; i++)
       {
-        Corruption = true; return new double[dimension];
+        spread -= beta[i] * (x[i] - meanX[i]);
       }
 
-      Corruption = false;
-      return sol.ToArray();
+      return spread;
     }
-    catch
+
+    /// <summary>
+    /// Returns the current regression coefficients.
+    /// The intercept is implicit through mean-centering.
+    /// </summary>
+    public virtual double[] Betas(bool update = false)
     {
-      Corruption = true;
-      return new double[dimension];
+      if (update)
+      {
+        cache = Solve();
+      }
+
+      return cache;
+    }
+
+    /// <summary>
+    /// Solves: (m2XX + ridge * I) * beta = m2XY
+    /// Cholesky is appropriate because the matrix is intended to be symmetric positive definite.
+    /// </summary>
+    protected virtual double[] Solve()
+    {
+      // With ridge = 0, use only a tiny numerical floor.
+      // With ridge > 0, scale the regularization by the average variance.
+      var scale = m2XX.Trace() / dimension;
+      var identity = Matrix<double>.Build.DenseIdentity(dimension);
+      var matrix = m2XX + identity * ridge * scale;
+
+      // Remove numerical asymmetry accumulated through floating-point arithmetic.
+      matrix = (matrix + matrix.Transpose()) * 0.5;
+
+      try
+      {
+        return matrix.Cholesky().Solve(m2XY).ToArray();
+      }
+      catch
+      {
+        return null;
+      }
     }
   }
 }

@@ -14,7 +14,6 @@ namespace Estimator.Services
     protected double processNoise;
     protected double observationNoise;
     protected double innovationScore;
-    protected double maxCovariance;
     protected bool setup;
 
     /// <summary>
@@ -28,26 +27,34 @@ namespace Estimator.Services
     /// <param name="dimension"></param>
     /// <param name="processNoise">Larger values adapt betas faster and ignore history.</param>
     /// <param name="obsNoise">Smaller values increase sensitivity.</param>
-    public KalmanService(int dimension, double processNoise = 1e-5, double obsNoise = 1e-3, double maxCovariance = 1e2)
+    public KalmanService(int dimension, double processNoise = 0.00001, double obsNoise = 0.001)
     {
       this.processNoise = processNoise;
       this.observationNoise = obsNoise;
-      this.maxCovariance = maxCovariance;
 
-      betas = Vector<double>.Build.Dense(dimension, 1);
+      betas = Vector<double>.Build.Dense(dimension, 0);
       covariance = Matrix<double>.Build.DenseIdentity(dimension);
     }
 
+    /// <summary>
+    /// Betas
+    /// </summary>
+    /// <param name="observations"></param>
     public virtual double Predict(params double[] observations) => Vector<double>
       .Build
       .DenseOfArray(observations)
       .DotProduct(betas);
 
-    public virtual double Update(double y, params double[] observations)
+    /// <summary>
+    /// Update observations
+    /// </summary>
+    /// <param name="y"></param>
+    /// <param name="observations"></param>
+    public virtual double? Update(double y, params double[] observations)
     {
       var x = Vector<double>.Build.DenseOfArray(observations);
 
-      // 1. Time update - skip Q when no observation to avoid unbounded growth
+      // 1. Time update
       for (var i = 0; i < betas.Count; i++)
       {
         covariance[i, i] += processNoise;
@@ -61,7 +68,6 @@ namespace Estimator.Services
       var px = covariance * x;
       var s = x.DotProduct(px) + observationNoise;
 
-      // Safe S for both gain and score
       var sSafe = Math.Max(s, Epsilon);
       var gain = px / sSafe;
 
@@ -69,7 +75,7 @@ namespace Estimator.Services
       betas += gain * error;
       innovationScore = error / Math.Sqrt(sSafe);
 
-      // 5. Joseph form - preserves PSD in exact math
+      // 5. Joseph form
       var identity = Matrix<double>.Build.DenseIdentity(betas.Count);
       var kh = gain.OuterProduct(x);
       var iKh = identity - kh;
@@ -78,53 +84,10 @@ namespace Estimator.Services
 
       covariance = term1 + term2;
 
-      // 6. Housekeeping - PSD preserving
-      // 6a. Enforce symmetry to clean FP drift
-      for (var i = 0; i < betas.Count; i++)
-      {
-        for (var ii = i + 1; ii < betas.Count; ii++)
-        {
-          var avg = (covariance[i, ii] + covariance[ii, i]) * 0.5;
-          covariance[i, ii] = avg;
-          covariance[ii, i] = avg;
-        }
-      }
-
-      // 6b. Trace cap - scaling preserves PSD: c*P stays PSD if P is PSD
-      var trace = covariance.Trace();
-      var maxTrace = maxCovariance * betas.Count;
-
-      if (trace > maxTrace && trace > 0)
-      {
-        covariance *= maxTrace / trace;
-      }
-
-      // 6c. Per-dim cap preserving correlation - D*P*D preserves PSD
-      // Instead of: P[i,i] = min(P[i,i], max) which breaks PSD like [1000 990; 990 1000] -> [100 990; 990 100]
-      for (var i = 0; i < betas.Count; i++)
-      {
-        if (covariance[i, i] > maxCovariance)
-        {
-          var scale = Math.Sqrt(maxCovariance / covariance[i, i]);
-
-          for (var ii = 0; ii < betas.Count; ii++)
-          {
-            covariance[i, ii] *= scale;
-            covariance[ii, i] *= scale;
-          }
-
-          // Floor to avoid singularity
-          if (covariance[i, i] < MinVariance)
-          {
-            covariance[i, i] = MinVariance;
-          }
-        }
-      }
-
       if (setup is false)
       {
         setup = true;
-        return 0;
+        return null;
       }
 
       return error;
